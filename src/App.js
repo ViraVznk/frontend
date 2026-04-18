@@ -1,57 +1,62 @@
-import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState } from "react";
+import "./App.css";
+
+import LoginPage from "./LoginPage";
+import ManagerPage from "./ManagerPage";
+import CashierPage from "./CashierPage";
 
 function App() {
-  const [category, setProducts] = useState([]);
-useEffect(() => {
-  fetch("/api/categories")
-    .then(res => res.json())
-    .then(data => {
-      console.log(data);
-      setProducts(data);
-    })
-    .catch(console.error);
-}, []);
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [role, setRole] = useState(localStorage.getItem("role"));
 
- const categoryColumns = [
-  { key: "CATEGORY_NUMBER", label: "ID" },
-  { key: "CATEGORY_NAME", label: "Назва" }
-];
+  const logout = () => {
+    localStorage.clear();
+    setToken(null);
+    setRole(null);
+  };
 
-  return (
-    <div>
-      <h1>categories</h1>
-      <GenericTable data={category} columns={categoryColumns} />
-    </div>
-  );
-}
-
-function GenericTable({ data, columns }) {
-  if (!data || data.length === 0) return <p>No data</p>;
+  const PrivateRoute = ({ children, allowedRole }) => {
+    if (!token) return <Navigate to="/" />;
+    if (allowedRole && role !== allowedRole) return <Navigate to="/" />;
+    return children;
+  };
 
   return (
-    <table border="1">
-      <thead>
-        <tr>
-          {columns.map(col => (
-            <th key={col.key}>{col.label}</th>
-          ))}
-        </tr>
-      </thead>
+    <BrowserRouter>
+      <Routes>
 
-      <tbody>
-        {data.map((row, i) => (
-          <tr key={i}>
-            {columns.map(col => (
-              <td key={col.key}>
-                {col.render
-                  ? col.render(row[col.key], row)
-                  : row[col.key]}
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+        <Route
+          path="/"
+          element={
+            token
+              ? role === "MANAGER"
+                ? <Navigate to="/manager" />
+                : <Navigate to="/cashier" />
+              : <LoginPage setToken={setToken} setRole={setRole} />
+          }
+        />
+
+        <Route
+          path="/manager"
+          element={
+            <PrivateRoute allowedRole="MANAGER">
+              <ManagerPage logout={logout} />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/cashier"
+          element={
+            <PrivateRoute allowedRole="CASHIER">
+              <CashierPage logout={logout} />
+            </PrivateRoute>
+          }
+        />
+
+      </Routes>
+    </BrowserRouter>
   );
 }
 
