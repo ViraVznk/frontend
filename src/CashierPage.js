@@ -22,9 +22,9 @@ const VIEW_CONFIG = {
     canDelete: true,
     canEdit: true,
     columns: [
-      { key: "ID_PRODUCT", label: "ID" },
-      { key: "PRODUCT_NAME", label: "Назва" },
-      { key: "MANUFACTURER", label: "Виробник" },
+      { key: "id_product", label: "ID" },
+      { key: "product_name", label: "Назва" },
+      { key: "manufacturer", label: "Виробник" },
     ],
   },
 };
@@ -47,7 +47,7 @@ export default function CashierPage({ logout }) {
 
   const handleAdd = (newRow) => {
     const body = Object.fromEntries(
-      Object.entries(newRow).map(([k, v]) => [k.toLowerCase(), v])
+      Object.entries(newRow).map(([k, v]) => [k, v])
     );
     fetch(view.url, {
       method: "POST",
