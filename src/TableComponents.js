@@ -32,6 +32,7 @@ function FkInput({ col, value, onChange }) {
   useEffect(() => {
     const handleClick = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -51,6 +52,7 @@ function FkInput({ col, value, onChange }) {
           : { top: rect.bottom + window.scrollY, bottom: "auto" })
       });
     }
+    setSearch("");
     setOpen(true);
   };
 
@@ -74,8 +76,8 @@ function FkInput({ col, value, onChange }) {
       <input
         ref={inputRef}
         value={search}
-        onChange={e => { setSearch(e.target.value); onChange(e.target.value); setOpen(true); }}
-        onFocus={handleFocus}
+        readOnly
+        onClick={handleFocus}
         placeholder={col.label}
         style={inputStyle}
       />
@@ -93,13 +95,25 @@ function FkInput({ col, value, onChange }) {
           maxHeight: 200,
           overflowY: "auto",
         }}>
+          <div
+            style={fkOptionStyle}
+            onMouseDown={() => {
+              onChange(null);
+              setSearch("");
+              setOpen(false);
+            }}
+          >
+            <span style={{ color: "#888" }}>— Всі —</span>
+          </div>
           {filtered.map(opt => (
             <div
               key={opt[col.foreignKey.valueKey]}
               style={fkOptionStyle}
               onMouseDown={() => {
-                onChange(opt[col.foreignKey.valueKey]);
-                setSearch(`${opt[col.foreignKey.valueKey]} — ${opt[col.foreignKey.labelKey]}`);
+                const val = opt[col.foreignKey.valueKey];
+                const label = opt[col.foreignKey.labelKey];
+                onChange(val);
+                setSearch(label);
                 setOpen(false);
               }}
             >
@@ -122,9 +136,10 @@ function ActionMenu({ onEdit, onDelete, row, i, editingIndex, setEditingIndex, s
   useEffect(() => {
     const handleClick = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target) &&
-          btnRef.current && !btnRef.current.contains(e.target)) {
+        btnRef.current && !btnRef.current.contains(e.target)) {
         setOpen(false);
       }
+
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -219,6 +234,23 @@ export function UniversalTable({ columns, data, onAdd, onDelete, onEdit }) {
     setEditRow({});
   };
 
+  const [fkLabels, setFkLabels] = useState({});
+
+  useEffect(() => {
+    columns.forEach(col => {
+      if (!col.foreignKey) return;
+      fetch(col.foreignKey.url)
+        .then(r => r.json())
+        .then(options => {
+          const map = {};
+          options.forEach(opt => {
+            map[opt[col.foreignKey.valueKey]] = opt[col.foreignKey.labelKey];
+          });
+          setFkLabels(prev => ({ ...prev, [col.key]: map }));
+        });
+    });
+  }, [columns]);
+
   const showActions = onDelete || onEdit;
 
   return (
@@ -244,7 +276,9 @@ export function UniversalTable({ columns, data, onAdd, onDelete, onEdit }) {
                       onChange={v => setEditRow(prev => ({ ...prev, [col.key]: v }))}
                     />
                   ) : (
-                    row[col.key]
+                    col.foreignKey && fkLabels[col.key]
+                      ? fkLabels[col.key][row[col.key]] ?? row[col.key]
+                      : row[col.key]
                   )}
                 </td>
               ))}
@@ -306,6 +340,98 @@ export function TabSwitcher({ views, activeView, onChange, config }) {
         </button>
       ))}
     </div>
+  );
+}
+
+export function FilterBar({ filters, values, onChange, onReset }) {
+  return (
+    <div style={{ display: "flex", gap: 16, marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+      {filters.map(filter => {
+
+        if (filter.type === "select-static") return (
+          <div key={filter.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 13, color: "#666" }}>{filter.label}:</span>
+            <select
+              value={values[filter.label] ?? filter.options[0].value}
+              onChange={e => onChange(filter, e.target.value)}
+              style={{ fontSize: 13, border: "0.5px solid #ccc", borderRadius: 6, padding: "4px 8px", background: "transparent" }}
+            >
+              {filter.options.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+        );
+
+        if (filter.type === "sort") {
+          const isActive = filter.dependsOn
+            ? (filter.dependsOnValues ?? []).includes(
+                values[filter.dependsOn] ?? "all"
+              )
+            : true;
+
+          return (
+            <div key={filter.label} style={{
+              display: "flex", alignItems: "center", gap: 8,
+              opacity: isActive ? 1 : 0.35,
+              pointerEvents: isActive ? "auto" : "none",
+            }}>
+              <span style={{ fontSize: 13, color: "#666" }}>Сортувати за:</span>
+              <select
+                value={values[filter.label] ?? filter.options[0].value}
+                onChange={e => onChange(filter, e.target.value)}
+                style={{ fontSize: 13, border: "0.5px solid #ccc", borderRadius: 6, padding: "4px 8px", background: "transparent" }}
+              >
+                {filter.options.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          );
+        }
+
+        if (filter.type === "search") return (
+          <div key={filter.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 13, color: "#666" }}>{filter.label}:</span>
+            <SearchInput filter={filter} value={values[filter.label] ?? ""} onChange={onChange} />
+          </div>
+        );
+        return (
+          <div key={filter.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 13, color: "#666", whiteSpace: "nowrap" }}>{filter.label}:</span>
+            <div style={{ minWidth: 200 }}>
+              <FkInput
+                col={{ label: "Всі", foreignKey: filter.foreignKey }}
+                value={values[filter.label] ?? ""}
+                onChange={(val) => onChange(filter, val || null)}
+                onClear={() => onChange(filter, null)}
+              />
+            </div>
+          </div>
+        );
+      })}
+
+      <button onClick={onReset} style={{ marginLeft: "auto", padding: "4px 12px", borderRadius: 6, border: "0.5px solid #ccc", cursor: "pointer", background: "transparent", fontSize: 13 }}>
+        ↺ Відновити
+      </button>
+    </div>
+  );
+}
+
+function SearchInput({ filter, value, onChange }) {
+  const [text, setText] = useState(value);
+
+  const apply = (val) => onChange(filter, val || null);
+
+  return (
+    <input
+      value={text}
+      onChange={e => setText(e.target.value)}
+      onKeyDown={e => e.key === "Enter" && apply(text)}
+      onBlur={() => apply(text)}
+      placeholder="Введіть назву..."
+      style={inputStyle}
+    />
   );
 }
 
