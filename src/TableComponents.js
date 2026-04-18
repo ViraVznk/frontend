@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export const thStyle = {
   padding: "10px 14px",
@@ -13,9 +13,197 @@ export const tdStyle = {
   borderBottom: "0.5px solid #eee"
 };
 
+function FkInput({ col, value, onChange }) {
+  const [options, setOptions] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState(value ?? "");
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 200 });
+  const ref = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (!col.foreignKey) return;
+    fetch(col.foreignKey.url)
+      .then(r => r.json())
+      .then(setOptions)
+      .catch(console.error);
+  }, [col]);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const handleFocus = () => {
+    if (!col.foreignKey) return;
+    if (inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const dropHeight = 200;
+      setDropPos({
+        left: rect.left + window.scrollX,
+        width: Math.max(rect.width, 220),
+        ...(spaceBelow < dropHeight
+          ? { top: rect.top + window.scrollY - dropHeight, bottom: "auto" }
+          : { top: rect.bottom + window.scrollY, bottom: "auto" })
+      });
+    }
+    setOpen(true);
+  };
+
+  if (!col.foreignKey) {
+    return (
+      <input
+        value={value ?? ""}
+        onChange={e => onChange(e.target.value)}
+        style={inputStyle}
+      />
+    );
+  }
+
+  const filtered = options.filter(opt =>
+    String(opt[col.foreignKey.valueKey]).includes(search) ||
+    String(opt[col.foreignKey.labelKey]).includes(search)
+  );
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <input
+        ref={inputRef}
+        value={search}
+        onChange={e => { setSearch(e.target.value); onChange(e.target.value); setOpen(true); }}
+        onFocus={handleFocus}
+        placeholder={col.label}
+        style={inputStyle}
+      />
+      {open && filtered.length > 0 && (
+        <div style={{
+          position: "fixed",
+          top: dropPos.top,
+          left: dropPos.left,
+          width: dropPos.width,
+          background: "#fff",
+          border: "0.5px solid #ddd",
+          borderRadius: 8,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+          zIndex: 9999,
+          maxHeight: 200,
+          overflowY: "auto",
+        }}>
+          {filtered.map(opt => (
+            <div
+              key={opt[col.foreignKey.valueKey]}
+              style={fkOptionStyle}
+              onMouseDown={() => {
+                onChange(opt[col.foreignKey.valueKey]);
+                setSearch(`${opt[col.foreignKey.valueKey]} — ${opt[col.foreignKey.labelKey]}`);
+                setOpen(false);
+              }}
+            >
+              <span style={{ fontWeight: 500 }}>{opt[col.foreignKey.valueKey]}</span>
+              <span style={{ color: "#888", marginLeft: 8 }}>{opt[col.foreignKey.labelKey]}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ActionMenu({ onEdit, onDelete, row, i, editingIndex, setEditingIndex, setEditRow, handleEditSave, editRow, columns }) {
+  const [open, setOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target) &&
+          btnRef.current && !btnRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const menuHeight = 90;
+      const menuWidth = 160;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceRight = window.innerWidth - rect.right;
+
+      setMenuPos({
+        top: spaceBelow < menuHeight
+          ? rect.top + window.scrollY - menuHeight
+          : rect.bottom + window.scrollY,
+        left: spaceRight < menuWidth
+          ? rect.right + window.scrollX - menuWidth
+          : rect.left + window.scrollX,
+      });
+    }
+    setOpen(o => !o);
+  };
+
+  if (editingIndex === i) {
+    return (
+      <div style={{ display: "flex", gap: 6 }}>
+        <button onClick={() => handleEditSave(row)} style={btnStyle("#4caf50")}>✓</button>
+        <button onClick={() => { setEditingIndex(null); setEditRow({}); }} style={btnStyle("#aaa")}>✕</button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <button ref={btnRef} onClick={handleOpen}
+        style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "#888" }}>
+        ⋯
+      </button>
+
+      {open && (
+        <div ref={menuRef} style={{
+          position: "fixed",
+          top: menuPos.top,
+          left: menuPos.left,
+          background: "#fff",
+          border: "0.5px solid #ddd",
+          borderRadius: 8,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          zIndex: 9999,
+          minWidth: 160,
+          overflow: "hidden",
+        }}>
+          {onEdit && (
+            <div style={menuItemStyle} onClick={() => {
+              setEditingIndex(i);
+              setEditRow({});
+              setOpen(false);
+            }}>
+              Редагувати
+            </div>
+          )}
+          {onDelete && (
+            <div style={{ ...menuItemStyle, color: "#e53935" }} onClick={() => {
+              onDelete(row);
+              setOpen(false);
+            }}>
+              Видалити
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
 export function UniversalTable({ columns, data, onAdd, onDelete, onEdit }) {
   const [newRow, setNewRow] = useState({});
-  const [menuOpenIndex, setMenuOpenIndex] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editRow, setEditRow] = useState({});
 
@@ -24,39 +212,36 @@ export function UniversalTable({ columns, data, onAdd, onDelete, onEdit }) {
     setNewRow({});
   };
 
- const handleEditSave = (row) => {
-  const merged = { ...row, ...editRow };
-  const body = Object.fromEntries(
-    Object.entries(merged).map(([k, v]) => [k, v])
-  );
-  onEdit(row[columns[0].key], body);
-  setEditingIndex(null);
-  setEditRow({});
-};
+  const handleEditSave = (row) => {
+    const merged = { ...row, ...editRow };
+    onEdit(row[columns[0].key], merged);
+    setEditingIndex(null);
+    setEditRow({});
+  };
 
   const showActions = onDelete || onEdit;
 
   return (
-    <div style={{ border: "0.5px solid #ddd", borderRadius: 12, overflow: "hidden" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-        <thead>
-          <tr style={{ background: "#f5f5f5" }}>
+    <div style={{ overflow: "auto", maxHeight: "70vh", border: "0.5px solid #ddd", borderRadius: 12 }}>
+      <table style={{ width: "max-content", minWidth: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+        <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "#f5f5f5" }}>
+          <tr>
             {columns.map(col => (
-              <th key={col.key} style={thStyle}>{col.label}</th>
+              <th key={col.key} style={{ ...thStyle, whiteSpace: "nowrap" }}>{col.label}</th>
             ))}
-            {showActions && <th style={thStyle}></th>}
+            {showActions && <th style={{ ...thStyle, width: 60 }}></th>}
           </tr>
         </thead>
         <tbody>
           {data.map((row, i) => (
-            <tr key={i}>
+            <tr key={i} style={{ background: editingIndex === i ? "#fafafa" : "white" }}>
               {columns.map(col => (
-                <td key={col.key} style={tdStyle}>
+                <td key={col.key} style={{ ...tdStyle, whiteSpace: editingIndex === i ? "normal" : "nowrap" }}>
                   {editingIndex === i ? (
-                    <input
+                    <FkInput
+                      col={col}
                       value={editRow[col.key] ?? row[col.key]}
-                      onChange={e => setEditRow(prev => ({ ...prev, [col.key]: e.target.value }))}
-                      style={{ width: "100%", border: "none", outline: "none", fontSize: 14, background: "transparent", borderBottom: "1px solid #aaa" }}
+                      onChange={v => setEditRow(prev => ({ ...prev, [col.key]: v }))}
                     />
                   ) : (
                     row[col.key]
@@ -65,50 +250,19 @@ export function UniversalTable({ columns, data, onAdd, onDelete, onEdit }) {
               ))}
 
               {showActions && (
-                <td style={{ ...tdStyle, position: "relative", width: 60 }}>
-                  {editingIndex === i ? (
-                    <div style={{ display: "flex", gap: 6 }}>
-                      <button onClick={() => handleEditSave(row)} style={btnStyle("#4caf50")}>✓</button>
-                      <button onClick={() => setEditingIndex(null)} style={btnStyle("#aaa")}>✕</button>
-                    </div>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => setMenuOpenIndex(menuOpenIndex === i ? null : i)}
-                        style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "#888" }}
-                      >
-                        ⋯
-                      </button>
-
-                      {menuOpenIndex === i && (
-                        <div style={dropdownStyle}>
-                          {onEdit && (
-                            <div
-                              style={menuItemStyle}
-                              onClick={() => {
-                                setEditingIndex(i);
-                                setEditRow({});
-                                setMenuOpenIndex(null);
-                              }}
-                            >
-                             Редагувати
-                            </div>
-                          )}
-                          {onDelete && (
-                            <div
-                              style={{ ...menuItemStyle, color: "#e53935" }}
-                              onClick={() => {
-                                onDelete(row);
-                                setMenuOpenIndex(null);
-                              }}
-                            >
-                            Видалити
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  )}
+                <td style={{ ...tdStyle, width: 60 }}>
+                  <ActionMenu
+                    row={row}
+                    i={i}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    editingIndex={editingIndex}
+                    setEditingIndex={setEditingIndex}
+                    editRow={editRow}
+                    setEditRow={setEditRow}
+                    handleEditSave={handleEditSave}
+                    columns={columns}
+                  />
                 </td>
               )}
             </tr>
@@ -117,18 +271,16 @@ export function UniversalTable({ columns, data, onAdd, onDelete, onEdit }) {
           {onAdd && (
             <tr>
               {columns.map(col => (
-                <td key={col.key} style={tdStyle}>
-                  <input
-                    value={newRow[col.key] || ""}
-                    onChange={e => setNewRow(prev => ({ ...prev, [col.key]: e.target.value }))}
-                    onKeyDown={e => e.key === "Enter" && handleAdd()}
-                    placeholder={col.label}
-                    style={{ width: "100%", border: "none", outline: "none", fontSize: 14, background: "transparent" }}
+                <td key={col.key} style={{ ...tdStyle, minWidth: 120 }}>
+                  <FkInput
+                    col={col}
+                    value={newRow[col.key] ?? ""}
+                    onChange={v => setNewRow(prev => ({ ...prev, [col.key]: v }))}
                   />
                 </td>
               ))}
               <td style={tdStyle}>
-                <button onClick={handleAdd}>+ Додати</button>
+                <button onClick={handleAdd} style={btnStyle("#666f76")}>+ Додати</button>
               </td>
             </tr>
           )}
@@ -142,18 +294,14 @@ export function TabSwitcher({ views, activeView, onChange, config }) {
   return (
     <div style={{ display: "flex", gap: 8, marginBottom: "1.5rem" }}>
       {views.map(key => (
-        <button
-          key={key}
-          onClick={() => onChange(key)}
-          style={{
-            padding: "6px 16px",
-            borderRadius: 8,
-            border: "0.5px solid #ccc",
-            background: activeView === key ? "#f0f0f0" : "transparent",
-            cursor: "pointer",
-            fontWeight: activeView === key ? 500 : 400,
-          }}
-        >
+        <button key={key} onClick={() => onChange(key)} style={{
+          padding: "6px 16px",
+          borderRadius: 8,
+          border: "0.5px solid #ccc",
+          background: activeView === key ? "#f0f0f0" : "transparent",
+          cursor: "pointer",
+          fontWeight: activeView === key ? 500 : 400,
+        }}>
           {config[key].label}
         </button>
       ))}
@@ -161,17 +309,22 @@ export function TabSwitcher({ views, activeView, onChange, config }) {
   );
 }
 
-const dropdownStyle = {
-  position: "absolute",
-  right: 0,
-  top: "100%",
-  background: "#fff",
-  border: "0.5px solid #ddd",
-  borderRadius: 8,
-  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-  zIndex: 100,
-  minWidth: 150,
-  overflow: "hidden",
+const fkOptionStyle = {
+  padding: "8px 12px",
+  cursor: "pointer",
+  fontSize: 13,
+  display: "flex",
+  alignItems: "center",
+  borderBottom: "0.5px solid #f0f0f0",
+};
+
+const inputStyle = {
+  width: "100%",
+  border: "none",
+  outline: "none",
+  fontSize: 14,
+  background: "transparent",
+  borderBottom: "1px solid #aaa",
 };
 
 const menuItemStyle = {
@@ -188,4 +341,5 @@ const btnStyle = (color) => ({
   color: "#fff",
   cursor: "pointer",
   padding: "4px 10px",
+  whiteSpace: "nowrap",
 });

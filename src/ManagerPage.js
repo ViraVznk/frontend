@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { UniversalTable, TabSwitcher } from "./TableComponents";
 
-const VIEWS = ["categories", "products"];
+const VIEWS = ["categories", "products","employee","storeProduct"];
 
 const VIEW_CONFIG = {
   categories: {
@@ -23,9 +23,53 @@ const VIEW_CONFIG = {
     canEdit: true,
     columns: [
       { key: "id_product", label: "ID" },
-      { key: "category_number", label: "Категорія" },
+       {key: "category_number",
+        label: "Категорія",
+        foreignKey: {
+          url: "/api/categories",
+          valueKey: "category_number",
+          labelKey: "category_name"
+        }
+      },
       { key: "product_name", label: "Назва" },
       { key: "manufacturer", label: "Виробник" },
+      { key: "characteristics", label: "Характеристики" },
+    ],
+  },
+    employee:{
+      label: "Працівники",
+      url: "/api/employees",
+      canAdd: true,
+      canDelete: true,
+      canEdit: true,
+      columns: [
+      { key: "id_employee", label: "ID" },
+      { key: "empl_surname", label: "Фамілія" },
+      { key: "empl_name", label: "Імя" },
+      { key: "empl_role", label: "Роль" },
+      { key: "salary", label: "Зарплата" },
+      { key: "date_of_birth", label: "Дата народження" },
+      { key: "date_of_start", label: "Дата початку роботи" },
+      { key: "phone_number", label: "Номер телефону" },
+      { key: "city", label: "Місто" },
+      { key: "street", label: "Вулиця" },
+      { key: "zip_code", label: "zip_code" },
+      ],
+    
+    },
+    storeProduct: {
+    label: "Товари в магазині",
+    url: "/api/store-products",
+    canAdd: true,
+    canDelete: true,
+    canEdit: true,
+    columns: [
+    { key: "upc", label: "UPC" },
+    { key: "upc_prom", label: "Акційний UPC" },
+    { key: "product_id", label: "ID товару" },
+    { key: "selling_price", label: "Ціна" },
+    { key: "products_number", label: "Кількість" },
+    { key: "promotional", label: "Акційний" },
     ],
   },
 };
@@ -55,6 +99,7 @@ export default function ManagerPage({ logout }) {
       body: JSON.stringify(body),
     }).then(loadData);
   };
+  
   const handleDelete = (row) => {
   const id = row[view.columns[0].key];
   fetch(`${view.url}/${id}`, { method: "DELETE" })
