@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function LoginPage({ setToken, setRole }) {
+export default function LoginPage({ setToken, setRole, setEmployeeId }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -12,7 +12,7 @@ export default function LoginPage({ setToken, setRole }) {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
@@ -24,9 +24,11 @@ export default function LoginPage({ setToken, setRole }) {
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
+      localStorage.setItem("employeeId", data.employee_id);
 
       setToken(data.token);
       setRole(data.role);
+      setEmployeeId(data.id_employee);
 
     } catch {
       setError("Неправильний логін або пароль");

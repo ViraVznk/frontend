@@ -9,11 +9,13 @@ import CashierPage from "./CashierPage";
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [role, setRole] = useState(localStorage.getItem("role"));
+  const [employeeId, setEmployeeId] = useState(localStorage.getItem("employeeId"));
 
   const logout = () => {
     localStorage.clear();
     setToken(null);
     setRole(null);
+    setEmployeeId(null);
   };
 
   const PrivateRoute = ({ children, allowedRole }) => {
@@ -25,7 +27,6 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         <Route
           path="/"
           element={
@@ -33,7 +34,7 @@ function App() {
               ? role === "MANAGER"
                 ? <Navigate to="/manager" />
                 : <Navigate to="/cashier" />
-              : <LoginPage setToken={setToken} setRole={setRole} />
+              : <LoginPage setToken={setToken} setRole={setRole} setEmployeeId={setEmployeeId} />
           }
         />
 
@@ -50,11 +51,10 @@ function App() {
           path="/cashier"
           element={
             <PrivateRoute allowedRole="CASHIER">
-              <CashierPage logout={logout} />
+              <CashierPage logout={logout} employeeId={employeeId} />
             </PrivateRoute>
           }
         />
-
       </Routes>
     </BrowserRouter>
   );

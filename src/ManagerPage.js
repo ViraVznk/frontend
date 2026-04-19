@@ -1,41 +1,28 @@
 import { useEffect, useState } from "react";
 import { UniversalTable, TabSwitcher, FilterBar } from "./TableComponents";
+import Mchecksview from "./Mchecksview";
 
-const VIEWS = ["categories", "products", "storeProduct", "employee"];
+const VIEWS = ["categories", "products", "storeProduct", "employee", "checks"];
 
 const VIEW_CONFIG = {
   categories: {
     label: "Категорії",
     url: "/api/categories",
-    canAdd: true,
-    canDelete: true,
-    canEdit: true,
+    canAdd: true, canDelete: true, canEdit: true,
     columns: [
       { key: "category_number", label: "ID" },
-      { key: "category_name", label: "Назва" },
+      { key: "category_name",   label: "Назва" },
     ],
   },
   products: {
     label: "Товари",
     url: "/api/products",
-    canAdd: true,
-    canDelete: true,
-    canEdit: true,
+    canAdd: true, canDelete: true, canEdit: true,
     filters: [
       {
         label: "Фільтр за категорією",
-        options: [
-          { value: null, label: "Всі товари" },
-        ],
-        foreignKey: {
-          url: "/api/categories",
-          valueKey: "category_number",
-          labelKey: "category_name",
-        },
-        buildUrl: (value) =>
-          value
-            ? `/api/products/bycategory/${value}`
-            : `/api/products`,
+        foreignKey: { url: "/api/categories", valueKey: "category_number", labelKey: "category_name" },
+        buildUrl: (value) => value ? `/api/products/bycategory/${value}` : `/api/products`,
       },
       {
         label: "Пошук за назвою",
@@ -44,97 +31,82 @@ const VIEW_CONFIG = {
       },
     ],
     columns: [
-      { key: "id_product", label: "ID" },
-      {
-        key: "category_number", label: "Категорія",
-        foreignKey: {
-          url: "/api/categories",
-          valueKey: "category_number",
-          labelKey: "category_name"
-        }
-      },
-      { key: "product_name", label: "Назва" },
-      { key: "manufacturer", label: "Виробник" },
+      { key: "id_product",      label: "ID" },
+      { key: "category_number", label: "Категорія", foreignKey: { url: "/api/categories", valueKey: "category_number", labelKey: "category_name" } },
+      { key: "product_name",    label: "Назва" },
+      { key: "manufacturer",    label: "Виробник" },
       { key: "characteristics", label: "Характеристики" },
     ],
   },
   employee: {
     label: "Працівники",
     url: "/api/employees",
-    canAdd: true,
-    canDelete: true,
-    canEdit: true,
+    canAdd: true, canDelete: true, canEdit: true,
     columns: [
-      { key: "id_employee", label: "ID" },
-      { key: "empl_surname", label: "Фамілія" },
-      { key: "empl_name", label: "Імя" },
-      { key: "empl_role", label: "Роль" },
-      { key: "salary", label: "Зарплата" },
-      { key: "date_of_birth", label: "Дата народження" },
-      { key: "date_of_start", label: "Дата початку роботи" },
-      { key: "phone_number", label: "Номер телефону" },
-      { key: "city", label: "Місто" },
-      { key: "street", label: "Вулиця" },
-      { key: "zip_code", label: "zip_code" },
+      { key: "id_employee",    label: "ID" },
+      { key: "empl_surname",   label: "Прізвище" },
+      { key: "empl_name",      label: "Ім'я" },
+      { key: "empl_role",      label: "Роль" },
+      { key: "salary",         label: "Зарплата" },
+      { key: "date_of_birth",  label: "Дата народження" },
+      { key: "date_of_start",  label: "Дата початку" },
+      { key: "phone_number",   label: "Телефон" },
+      { key: "city",           label: "Місто" },
+      { key: "street",         label: "Вулиця" },
+      { key: "zip_code",       label: "ZIP" },
     ],
-
   },
   storeProduct: {
     label: "Товари в магазині",
     url: "/api/store-products",
-    canAdd: true,
-    canDelete: true,
-    canEdit: true,
+    canAdd: true, canDelete: true, canEdit: true,
     filters: [
       {
         label: "Тип товару",
         type: "select-static",
         options: [
-          { value: "all", label: "Всі" },
+          { value: "all",     label: "Всі" },
           { value: "notprom", label: "Не акційні" },
         ],
-        buildUrl: (type, sort) => {
-          if (type === "notprom") return `/api/store-products/not-promotional/by-${sort}`;
-          return `/api/store-products/by-${sort}`;
-        },
+        buildUrl: (type, sort) => type === "notprom"
+          ? `/api/store-products/not-promotional/by-${sort}`
+          : `/api/store-products/by-${sort}`,
       },
       {
         label: "Сортувати за",
         type: "sort",
-        dependsOn: "Тип товару",        // ← активний тільки коли тип != "all"
-        dependsOnValues: ["notprom"],    // ← при яких значеннях активний
+        dependsOn: "Тип товару",
+        dependsOnValues: ["notprom"],
         options: [
-          { value: "name", label: "Назва" },
+          { value: "name",     label: "Назва" },
           { value: "quantity", label: "Кількість" },
         ],
       },
     ],
     columns: [
-      { key: "upc", label: "UPC" },
-      { key: "upc_prom", label: "Акційний UPC" },
-      {
-        key: "product_id", label: "Назва",
-        foreignKey: {
-          url: "/api/products",
-          valueKey: "id_product",
-          labelKey: "product_name"
-        }
-      },
-      { key: "selling_price", label: "Ціна" },
+      { key: "upc",             label: "UPC" },
+      { key: "upc_prom",        label: "Акційний UPC" },
+      { key: "product_id",      label: "Назва", foreignKey: { url: "/api/products", valueKey: "id_product", labelKey: "product_name" } },
+      { key: "selling_price",   label: "Ціна" },
       { key: "products_number", label: "Кількість" },
-      //{ key: "promotional", label: "Акційний" },
     ],
+  },
+  checks: {
+    label: "Чеки",
+    // no url/columns — rendered via ManagerChecksView
   },
 };
 
 export default function ManagerPage({ logout }) {
-  const [activeView, setActiveView] = useState("categories");
-  const [data, setData] = useState([]);
+  const [activeView, setActiveView]   = useState("categories");
+  const [data, setData]               = useState([]);
   const [filterValues, setFilterValues] = useState({});
+  const [resetKey, setResetKey]       = useState(0);
 
   const view = VIEW_CONFIG[activeView];
 
   const loadData = (overrideUrl) => {
+    if (activeView === "checks") return;
     fetch(overrideUrl ?? view.url)
       .then(res => res.ok ? res.json() : [])
       .then(d => setData(Array.isArray(d) ? d : []))
@@ -143,27 +115,21 @@ export default function ManagerPage({ logout }) {
 
   useEffect(() => {
     setFilterValues({});
-    loadData();
+    if (activeView !== "checks") loadData();
   }, [activeView]);
 
   const handleAdd = (newRow) => {
-    const body = Object.fromEntries(
-      Object.entries(newRow).map(([k, v]) => [k, v])
-    );
     fetch(view.url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(newRow),
     }).then(() => loadData());
   };
 
   const handleDelete = (row) => {
     const id = row[view.columns[0].key];
     fetch(`${view.url}/${id}`, { method: "DELETE" })
-      .then(res => {
-        if (!res.ok) return res.text().then(msg => alert(msg));
-        loadData();
-      });
+      .then(res => { if (!res.ok) return res.text().then(msg => alert(msg)); loadData(); });
   };
 
   const handleEdit = (id, body) => {
@@ -177,17 +143,11 @@ export default function ManagerPage({ logout }) {
   const handleFilterChange = (filter, value) => {
     const newValues = { ...filterValues, [filter.label]: value };
     setFilterValues(newValues);
-
     const currentView = VIEW_CONFIG[activeView];
     if (!currentView.filters) { loadData(); return; }
-
-    if (filter.type === "search") {
-      loadData(filter.buildUrl(value));
-      return;
-    }
+    if (filter.type === "search") { loadData(filter.buildUrl(value)); return; }
     const mainFilter = currentView.filters.find(f => f.type === "select-static");
     const sortFilter = currentView.filters.find(f => f.type === "sort");
-
     if (mainFilter) {
       const typeValue = newValues[mainFilter.label] ?? mainFilter.options[0].value;
       const sortValue = newValues[sortFilter?.label] ?? sortFilter?.options[0].value ?? "name";
@@ -197,44 +157,45 @@ export default function ManagerPage({ logout }) {
     loadData(filter.buildUrl(value));
   };
 
-  const [resetKey, setResetKey] = useState(0);
-
   const handleReset = () => {
     setFilterValues({});
+    setResetKey(k => k + 1);
     loadData();
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "2rem auto", padding: "0 1rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-        <h1 style={{ fontSize: 22, fontWeight: 500 }}>Manager Panel</h1>
-        <button onClick={logout}>Logout</button>
+    <div style={{ maxWidth: 960, margin: "2rem auto", padding: "0 1rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+        <h1 style={{ fontSize: 22, fontWeight: 500, margin: 0 }}>Manager Panel</h1>
+        <button onClick={logout} style={{ padding: "5px 14px", borderRadius: 6, border: "0.5px solid #ccc", background: "transparent", cursor: "pointer", fontSize: 13 }}>
+          Вийти
+        </button>
       </div>
 
-      <TabSwitcher
-        views={VIEWS}
-        activeView={activeView}
-        onChange={setActiveView}
-        config={VIEW_CONFIG}
-      />
+      <TabSwitcher views={VIEWS} activeView={activeView} onChange={setActiveView} config={VIEW_CONFIG} />
 
-      {view.filters && (
-        <FilterBar
-          key={resetKey}
-          filters={view.filters}
-          values={filterValues}
-          onChange={handleFilterChange}
-          onReset={handleReset}
-        />
+      {activeView === "checks" ? (
+        <Mchecksview />
+      ) : (
+        <>
+          {view.filters && (
+            <FilterBar
+              key={resetKey}
+              filters={view.filters}
+              values={filterValues}
+              onChange={handleFilterChange}
+              onReset={handleReset}
+            />
+          )}
+          <UniversalTable
+            columns={view.columns}
+            data={data}
+            onAdd={view.canAdd ? handleAdd : undefined}
+            onDelete={view.canDelete ? handleDelete : undefined}
+            onEdit={view.canEdit ? handleEdit : undefined}
+          />
+        </>
       )}
-
-      <UniversalTable
-        columns={view.columns}
-        data={data}
-        onAdd={view.canAdd ? handleAdd : undefined}
-        onDelete={view.canDelete ? handleDelete : undefined}
-        onEdit={view.canEdit ? handleEdit : undefined}
-      />
     </div>
   );
 }
