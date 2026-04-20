@@ -85,7 +85,7 @@ const VIEW_CONFIG = {
   customerCard:{
     label: "Клієнти",
     url: "/api/customer-cards",
-    canAdd: true, canDelete: true, canEdit: true,
+    canAdd: true, canDelete: false, canEdit: true,
     columns: 
     [{ key: "card_number", label: "card_number" },
     { key: "cust_surname", label: "cust_surname" },
@@ -96,7 +96,13 @@ const VIEW_CONFIG = {
     { key: "street", label: "street" },
     { key: "zip_code", label: "zip_code" },
     { key: "percent", label: "percent" },
-
+    ],
+    filters: [
+      {
+        label: "Пошук за прізвищем",
+        type: "search",
+        buildUrl: (value) => value ? `/api/customer-cards/by-surname?surname=${encodeURIComponent(value)}` : `/api/customer-cards`,
+      }
     ],
   },
 };

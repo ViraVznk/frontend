@@ -4,7 +4,7 @@ import Mchecksview from "./Mchecksview";
 import { PrintPanel } from "./PrintPanel";
 import StatsPage from "./StatsPage";
 
-const VIEWS = ["categories", "products", "storeProduct", "employee", "checks", "customerCard", "stats"];
+const VIEWS = ["categories", "products", "storeProduct", "employee","customerCard", "checks",  "stats"];
 
 const VIEW_CONFIG = {
   categories: {
@@ -67,7 +67,7 @@ const VIEW_CONFIG = {
   },
   storeProduct: {
     label: "Товари в магазині",
-    url: "/api/store-products",
+    url: "/api/store-products/by-quantity",
     canAdd: true, canDelete: true, canEdit: true,
     filters: [
       {
@@ -133,7 +133,6 @@ const VIEW_CONFIG = {
     label: "Клієнти",
     url: "/api/customer-cards",
     canAdd: true, canDelete: true, canEdit: true,
-
     columns: [
       { key: "card_number", label: "card_number" },
       { key: "cust_surname", label: "cust_surname" },
@@ -145,6 +144,13 @@ const VIEW_CONFIG = {
       { key: "zip_code", label: "zip_code" },
       { key: "percent", label: "percent" },
     ],
+    filters:[
+      {
+        label: "Пошук за відсотком",
+        type: "search",
+        buildUrl: (value) => value ? `/api/customer-cards/with-percent?percent=${encodeURIComponent(value)}` : `/api/customer-cards`,
+      }
+    ]
   },
   stats: {
     label: "★",
