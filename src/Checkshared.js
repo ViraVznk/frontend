@@ -210,14 +210,14 @@ export function StoreProductDropdown({ value, onChange, products }) {
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  const selected = products.find(p => p.upc === value);
+  const selected = products.find(p => (p.UPC ?? p.upc) === value);
   const label = selected
-    ? `${selected.product_name ?? selected.upc} (${parseFloat(selected.selling_price).toFixed(2)} ₴)`
+    ? `${selected.PRODUCT_NAME ?? selected.product_name ?? selected.UPC ?? selected.upc} (${parseFloat(selected.SELLING_PRICE ?? selected.selling_price).toFixed(2)} ₴)`
     : "— оберіть товар —";
 
   const filtered = products.filter(p =>
-    (p.product_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    p.upc.toLowerCase().includes(search.toLowerCase())
+    (p.PRODUCT_NAME ?? p.product_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    (p.UPC ?? p.upc ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -256,9 +256,12 @@ export function StoreProductDropdown({ value, onChange, products }) {
             {filtered.length === 0 ? (
               <div style={{ padding: "8px 12px", color: "#bbb", fontSize: 13 }}>Нічого не знайдено</div>
             ) : filtered.map(p => {
-              const isSel = value === p.upc;
+              const isSel = value === (p.UPC ?? p.upc);
+              const upc = p.UPC ?? p.upc;
+              const name = p.PRODUCT_NAME ?? p.product_name ?? upc;
+              const price = parseFloat(p.SELLING_PRICE ?? p.selling_price ?? 0).toFixed(2);
               return (
-                <div key={p.upc} onMouseDown={() => { onChange(p.upc); setOpen(false); setSearch(""); }}
+                <div key={(p.UPC ?? p.upc)} onMouseDown={() => { onChange((p.UPC ?? p.upc)); setOpen(false); setSearch(""); }}
                   style={{
                     padding: "8px 12px", cursor: "pointer", fontSize: 13,
                     background: isSel ? "#f0f0f0" : "transparent",
@@ -268,8 +271,8 @@ export function StoreProductDropdown({ value, onChange, products }) {
                   onMouseEnter={ev => { if (!isSel) ev.currentTarget.style.background = "#fafafa"; }}
                   onMouseLeave={ev => { ev.currentTarget.style.background = isSel ? "#f0f0f0" : "transparent"; }}
                 >
-                  <span style={{ color: "#333" }}>{p.product_name ?? p.upc}</span>
-                  <span style={{ color: "#aaa", fontSize: 12 }}>{parseFloat(p.selling_price).toFixed(2)} ₴</span>
+                  <span style={{ color: "#333" }}>{p.PRODUCT_NAME ?? p.product_name ?? p.UPC ?? p.upc}</span>
+                  <span style={{ color: "#aaa", fontSize: 12 }}>{parseFloat(p.SELLING_PRICE ?? p.selling_price ?? 0).toFixed(2)} ₴</span>
                 </div>
               );
             })}

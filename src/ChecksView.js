@@ -35,10 +35,10 @@ function DateTimeInput({ label, value, onChange }) {
 }
 
 const TABS = [
-  { key: "today",  label: "Сьогодні" },
+  { key: "today", label: "Сьогодні" },
   { key: "period", label: "За період" },
   { key: "search", label: "Пошук за чеком" },
-  { key: "add",    label: "+ Новий чек" },
+  { key: "add", label: "+ Новий чек" },
 ];
 
 function ModeTabs({ mode, setMode, canAdd }) {
@@ -48,7 +48,7 @@ function ModeTabs({ mode, setMode, canAdd }) {
       {tabs.map(t => (
         <button key={t.key} onClick={() => setMode(t.key)} style={{
           padding: "5px 14px", borderRadius: 6, border: "none",
-         background: mode === t.key ? "#fff" : "transparent",
+          background: mode === t.key ? "#fff" : "transparent",
           fontWeight: mode === t.key ? 600 : 400,
           fontSize: 13, cursor: "pointer",
           color: mode === t.key ? "#333" : "#666",
@@ -60,8 +60,8 @@ function ModeTabs({ mode, setMode, canAdd }) {
 
 function CheckSearchPanel({ employeeId }) {
   const [selected, setSelected] = useState("");
-  const [result, setResult]     = useState(null);
-  const [loading, setLoading]   = useState(false);
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const search = (num) => {
     if (!num) return;
@@ -95,12 +95,12 @@ function CheckSearchPanel({ employeeId }) {
         <div style={{ border: "0.5px solid #ddd", borderRadius: 10, overflow: "hidden" }}>
           <div style={{ padding: "12px 16px", background: "#f5f5f5", display: "flex", flexWrap: "wrap", gap: 20 }}>
             {[
-              ["Номер",  result.check.check_number],
-              ["Касир",  result.check.id_employee],
+              ["Номер", result.check.check_number],
+              ["Касир", result.check.id_employee],
               ["Картка", result.check.card_number ?? "—"],
-              ["Дата",   result.check.print_date ? new Date(result.check.print_date).toLocaleString("uk-UA") : "—"],
-              ["Сума",   `${parseFloat(result.check.sum_total ?? 0).toFixed(2)} ₴`],
-              ["ПДВ",    `${parseFloat(result.check.vat ?? 0).toFixed(2)} ₴`],
+              ["Дата", result.check.print_date ? new Date(result.check.print_date).toLocaleString("uk-UA") : "—"],
+              ["Сума", `${parseFloat(result.check.sum_total ?? 0).toFixed(2)} ₴`],
+              ["ПДВ", `${parseFloat(result.check.vat ?? 0).toFixed(2)} ₴`],
             ].map(([lbl, val]) => (
               <div key={lbl} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <span style={{ fontSize: 11, color: "#aaa", fontWeight: 500 }}>{lbl}</span>
@@ -117,19 +117,19 @@ function CheckSearchPanel({ employeeId }) {
 
 function AddCheckPanel({ employeeId, onAdded }) {
   const [storeProducts, setStoreProducts] = useState([]);
-  const [checkNumber, setCheckNumber]     = useState("");
-  const [cardNumber, setCardNumber]       = useState("");
-  const [items, setItems]                 = useState([{ upc: "", qty: 1 }]);
-  const [saving, setSaving]               = useState(false);
+  const [checkNumber, setCheckNumber] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [items, setItems] = useState([{ upc: "", qty: 1 }]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch("/api/store-products")
+    fetch("/api/store-products/all-with-det")
       .then(r => r.json())
       .then(setStoreProducts)
       .catch(console.error);
   }, []);
 
-  const addItem    = () => setItems(p => [...p, { upc: "", qty: 1 }]);
+  const addItem = () => setItems(p => [...p, { upc: "", qty: 1 }]);
   const removeItem = (i) => setItems(p => p.filter((_, idx) => idx !== i));
   const updateItem = (i, field, val) => setItems(p => p.map((it, idx) => idx === i ? { ...it, [field]: val } : it));
 
@@ -142,8 +142,8 @@ function AddCheckPanel({ employeeId, onAdded }) {
     try {
       let sumTotal = 0;
       const salesPayload = items.map(it => {
-        const sp = storeProducts.find(p => p.upc === it.upc);
-        const price = parseFloat(sp?.selling_price ?? 0);
+        const sp = storeProducts.find(p => (p.UPC ?? p.upc) === it.upc);
+        const price = parseFloat(sp?.SELLING_PRICE ?? sp?.selling_price ?? 0);
         sumTotal += price * it.qty;
         return { upc: it.upc, product_number: it.qty, selling_price: price, check_number: checkNumber };
       });
@@ -242,19 +242,19 @@ function AddCheckPanel({ employeeId, onAdded }) {
 
 const COLUMNS = [
   { key: "check_number", label: "Номер чеку" },
-  { key: "id_employee",  label: "Касир" },
-  { key: "card_number",  label: "Картка" },
-  { key: "print_date",   label: "Дата" },
-  { key: "sum_total",    label: "Сума (₴)" },
-  { key: "vat",          label: "ПДВ (₴)" },
+  { key: "id_employee", label: "Касир" },
+  { key: "card_number", label: "Картка" },
+  { key: "print_date", label: "Дата" },
+  { key: "sum_total", label: "Сума (₴)" },
+  { key: "vat", label: "ПДВ (₴)" },
 ];
 
 export default function ChecksView({ employeeId, canDelete = true, canAdd = false }) {
-  const [mode, setMode]         = useState("today");
-  const [from, setFrom]         = useState(todayRange().from);
-  const [to, setTo]             = useState(todayRange().to);
-  const [data, setData]         = useState([]);
-  const [loading, setLoading]   = useState(false);
+  const [mode, setMode] = useState("today");
+  const [from, setFrom] = useState(todayRange().from);
+  const [to, setTo] = useState(todayRange().to);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [totalSum, setTotalSum] = useState(null);
 
   const isTableMode = mode === "today" || mode === "period";
@@ -299,7 +299,7 @@ export default function ChecksView({ employeeId, canDelete = true, canAdd = fals
       {mode === "period" && (
         <div className="no-print" style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 16 }}>
           <DateTimeInput label="Від" value={from} onChange={v => v && setFrom(v)} />
-          <DateTimeInput label="До"  value={to}   onChange={v => v && setTo(v)} />
+          <DateTimeInput label="До" value={to} onChange={v => v && setTo(v)} />
           <button onClick={load} style={btnStyle("#666f76")}>Застосувати</button>
         </div>
       )}
