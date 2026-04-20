@@ -68,27 +68,44 @@ const VIEW_CONFIG = {
         type: "select-static",
         options: [
           { value: "all", label: "Всі" },
+          { value: "prom", label: "Акційні" },
           { value: "notprom", label: "Не акційні" },
         ],
-        buildUrl: (type, sort) => type === "notprom"
-          ? `/api/store-products/not-promotional/by-${sort}`
-          : `/api/store-products/by-${sort}`,
+        buildUrl: (type, sort) => {
+          if (type === "prom") return `/api/store-products/promotional/by-${sort}`;
+          if (type === "notprom") return `/api/store-products/not-promotional/by-${sort}`;
+          return `/api/store-products`;
+        },
       },
       {
         label: "Сортувати за",
         type: "sort",
         dependsOn: "Тип товару",
-        dependsOnValues: ["notprom"],
+        dependsOnValues: ["prom", "notprom"],
         options: [
           { value: "name", label: "Назва" },
           { value: "quantity", label: "Кількість" },
+        ],
+      },
+      {
+        label: "Пошук за UPC",
+        type: "search",
+        buildUrl: (value) => value
+          ? `/api/store-products/by-upc?upc=${encodeURIComponent(value)}`
+          : null,
+        searchColumns: [
+          { key: "UPC", label: "UPC" },
+          { key: "SELLING_PRICE", label: "Ціна" },
+          { key: "PRODUCTS_NUMBER", label: "Кількість" },
+          { key: "PRODUCT_NAME", label: "Назва" },
+          { key: "CHARACTERISTICS", label: "Характеристики" },
         ],
       },
     ],
     columns: [
       { key: "upc", label: "UPC" },
       { key: "upc_prom", label: "Акційний UPC" },
-      { key: "product_id", label: "Назва", foreignKey: { url: "/api/products", valueKey: "id_product", labelKey: "product_name" } },
+      { key: "id_product", label: "Назва", foreignKey: { url: "/api/products", valueKey: "id_product", labelKey: "product_name" } },
       { key: "selling_price", label: "Ціна" },
       { key: "products_number", label: "Кількість" },
     ],
@@ -104,20 +121,20 @@ const VIEW_CONFIG = {
     { key: "vat", label: "ПДВ (₴)" },
     ],
   },
-  customerCard:{
+  customerCard: {
     label: "Клієнти",
     url: "/api/customer-cards",
     canAdd: true, canDelete: true, canEdit: true,
     columns: [{ key: "card_number", label: "card_number" },
-          { key: "cust_surname", label: "cust_surname" },
+    { key: "cust_surname", label: "cust_surname" },
     { key: "cust_name", label: "cust_name" },
     { key: "cust_patronymic", label: "cust_patronymic" },
     { key: "phone_number", label: "phone_number" },
     { key: "city", label: "city" },
     { key: "street", label: "street" },
-          { key: "zip_code", label: "zip_code" },
+    { key: "zip_code", label: "zip_code" },
     { key: "percent", label: "percent" },
-   
+
     ],
   },
   stats: {
@@ -133,6 +150,7 @@ export default function ManagerPage({ logout }) {
   const [data, setData] = useState([]);
   const [filterValues, setFilterValues] = useState({});
   const [resetKey, setResetKey] = useState(0);
+  const [activeColumns, setActiveColumns] = useState(null);
 
   const view = VIEW_CONFIG[activeView];
 
@@ -146,16 +164,31 @@ export default function ManagerPage({ logout }) {
 
   useEffect(() => {
     setFilterValues({});
+    setActiveColumns(null);
     if (activeView !== "checks") loadData();
   }, [activeView]);
 
   const handleAdd = (newRow) => {
+    const rowWithPromo = {
+      ...newRow,
+      id_product: newRow.id_product ? Number(newRow.id_product) : null,
+      selling_price: newRow.selling_price ? Number(newRow.selling_price) : null,
+      products_number: newRow.products_number ? Number(newRow.products_number) : null,
+      promotional: !!newRow.upc_prom && newRow.upc_prom.trim() !== "",
+      upc_prom: newRow.upc_prom?.trim() || null,
+    };
+
     fetch(view.url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newRow),
-    }).then(() => loadData());
+      body: JSON.stringify(rowWithPromo),
+    }).then(res => {
+      if (!res.ok) res.text().then(msg => alert(msg)); // побачиш точне повідомлення
+      else loadData();
+    });
   };
+
+
 
   const handleDelete = (row) => {
     const id = row[view.columns[0].key];
@@ -172,11 +205,23 @@ export default function ManagerPage({ logout }) {
   };
 
   const handleFilterChange = (filter, value) => {
+
     const newValues = { ...filterValues, [filter.label]: value };
     setFilterValues(newValues);
     const currentView = VIEW_CONFIG[activeView];
     if (!currentView.filters) { loadData(); return; }
-    if (filter.type === "search") { loadData(filter.buildUrl(value)); return; }
+
+    if (filter.type === "search") {
+      const url = filter.buildUrl(value);
+      if (url === null) {
+        setActiveColumns(null);
+        loadData();
+      } else {
+        if (filter.searchColumns) setActiveColumns(filter.searchColumns);
+        loadData(url);
+      }
+      return;
+    }
     const mainFilter = currentView.filters.find(f => f.type === "select-static");
     const sortFilter = currentView.filters.find(f => f.type === "sort");
     if (mainFilter) {
@@ -190,6 +235,7 @@ export default function ManagerPage({ logout }) {
 
   const handleReset = () => {
     setFilterValues({});
+    setActiveColumns(null);
     setResetKey(k => k + 1);
     loadData();
   };
@@ -230,11 +276,11 @@ export default function ManagerPage({ logout }) {
             : (
               <>
                 <UniversalTable
-                  columns={view.columns}
+                  columns={activeColumns ?? view.columns}
                   data={data}
-                  onAdd={view.canAdd ? handleAdd : undefined}
-                  onDelete={view.canDelete ? handleDelete : undefined}
-                  onEdit={view.canEdit ? handleEdit : undefined}
+                  onAdd={activeColumns ? undefined : view.canAdd ? handleAdd : undefined}
+                  onDelete={activeColumns ? undefined : view.canDelete ? handleDelete : undefined}
+                  onEdit={activeColumns ? undefined : view.canEdit ? handleEdit : undefined}
                 />
                 <PrintPanel
                   url={view.url}

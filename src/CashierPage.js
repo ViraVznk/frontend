@@ -62,7 +62,7 @@ const VIEW_CONFIG = {
     columns: [
       { key: "upc", label: "UPC" },
       { key: "upc_prom", label: "Акційний UPC" },
-      { key: "product_id", label: "Назва", foreignKey: { url: "/api/products", valueKey: "id_product", labelKey: "product_name" } },
+      { key: "id_product", label: "Назва", foreignKey: { url: "/api/products", valueKey: "id_product", labelKey: "product_name" } },
       { key: "selling_price", label: "Ціна" },
       { key: "products_number", label: "Кількість" },
     ],
