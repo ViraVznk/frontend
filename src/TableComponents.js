@@ -401,7 +401,7 @@ export function FilterBar({ filters, values, onChange, onReset }) {
             <span style={{ fontSize: 13, color: "#666", whiteSpace: "nowrap" }}>{filter.label}:</span>
             <div style={{ minWidth: 200 }}>
               <FkInput
-                col={{ label: "Всі", foreignKey: filter.foreignKey }}
+                col={{ label: "усі", foreignKey: filter.foreignKey }}
                 value={values[filter.label] ?? ""}
                 onChange={(val) => onChange(filter, val || null)}
                 onClear={() => onChange(filter, null)}
@@ -429,7 +429,7 @@ function SearchInput({ filter, value, onChange }) {
       onChange={e => setText(e.target.value)}
       onKeyDown={e => e.key === "Enter" && apply(text)}
       onBlur={() => apply(text)}
-      placeholder="Введіть назву..."
+      placeholder="введіть..."
       style={inputStyle}
     />
   );

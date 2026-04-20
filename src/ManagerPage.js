@@ -57,6 +57,13 @@ const VIEW_CONFIG = {
       { key: "street", label: "Вулиця" },
       { key: "zip_code", label: "ZIP" },
     ],
+    filters:[
+      {
+        label: "Пошук за іменем",
+        type: "search",
+        buildUrl: (value) => value ? `/api/employees/by-name?name=${encodeURIComponent(value)}` : `/api/employees`,
+      },
+    ],
   },
   storeProduct: {
     label: "Товари в магазині",
