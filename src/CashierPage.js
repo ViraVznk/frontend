@@ -8,7 +8,7 @@ const VIEW_CONFIG = {
   categories: {
     label: "Категорії",
     url: "/api/categories",
-    canAdd: false, canDelete: true, canEdit: true,
+    canAdd: false, canDelete: false, canEdit: false,
     columns: [
       { key: "category_number", label: "ID" },
       { key: "category_name", label: "Назва" },
@@ -17,22 +17,30 @@ const VIEW_CONFIG = {
   products: {
     label: "Товари",
     url: "/api/products",
-    canAdd: true, canDelete: true, canEdit: true,
+    canAdd: false, canDelete: false, canEdit: false,
     filters: [{
       label: "Фільтр за категорією",
       foreignKey: { url: "/api/categories", valueKey: "category_number", labelKey: "category_name" },
-      buildUrl: (value) => value ? `/api/products/bycategory/${value}` : `/api/products`,
-    }],
+     buildUrl: (value) => value ? `/api/products/bycategory/${value}` : `/api/products`,
+    },
+    {
+      label: "Пошук за назвою",
+      type: "search",
+      buildUrl: (value) => value ? `/api/products/search?name=${encodeURIComponent(value)}` : `/api/products`,
+    },
+    ],
     columns: [
       { key: "id_product", label: "ID" },
+      { key: "category_number", label: "Категорія", foreignKey: { url: "/api/categories", valueKey: "category_number", labelKey: "category_name" } },
       { key: "product_name", label: "Назва" },
       { key: "manufacturer", label: "Виробник" },
+      { key: "characteristics", label: "Характеристики" },
     ],
   },
   storeProduct: {
     label: "Товари в магазині",
     url: "/api/store-products",
-    canAdd: true, canDelete: true, canEdit: true,
+    canAdd: false, canDelete: false, canEdit: false,
     filters: [
       {
         label: "Тип товару",
@@ -58,6 +66,13 @@ const VIEW_CONFIG = {
           { value: "name", label: "Назва" },
         ],
       },
+      {
+        label: "Пошук за UPC",
+        type: "search",
+        buildUrl: (value) => value
+          ? `/api/store-products/by-upc-def?upc=${encodeURIComponent(value)}`
+          : "/api/store-products",
+      },
     ],
     columns: [
       { key: "upc", label: "UPC" },
@@ -67,20 +82,21 @@ const VIEW_CONFIG = {
       { key: "products_number", label: "Кількість" },
     ],
   },
-  customerCard: {
+  customerCard:{
     label: "Клієнти",
     url: "/api/customer-cards",
     canAdd: true, canDelete: true, canEdit: true,
-    columns: [
-      { key: "card_number", label: "card_number" },
-      { key: "cust_surname", label: "cust_surname" },
-      { key: "cust_name", label: "cust_name" },
-      { key: "cust_patronymic", label: "cust_patronymic" },
-      { key: "phone_number", label: "phone_number" },
-      { key: "city", label: "city" },
-      { key: "street", label: "street" },
-      { key: "zip_code", label: "zip_code" },
-      { key: "percent", label: "percent" },
+    columns: 
+    [{ key: "card_number", label: "card_number" },
+    { key: "cust_surname", label: "cust_surname" },
+    { key: "cust_name", label: "cust_name" },
+    { key: "cust_patronymic", label: "cust_patronymic" },
+    { key: "phone_number", label: "phone_number" },
+    { key: "city", label: "city" },
+    { key: "street", label: "street" },
+    { key: "zip_code", label: "zip_code" },
+    { key: "percent", label: "percent" },
+
     ],
   },
 };
@@ -201,6 +217,7 @@ export default function CashierPage({ logout, employeeId }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [selfInfo, setSelfInfo] = useState(null);
   const [selfLoading, setSelfLoading] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
 
   const view = VIEW_CONFIG[activeView];
 
@@ -266,7 +283,11 @@ export default function CashierPage({ logout, employeeId }) {
     loadData(filter.buildUrl(value));
   };
 
-  const handleReset = () => { setFilterValues({}); loadData(); };
+  const handleReset = () => {
+    setFilterValues({});
+    setResetKey(k => k + 1);
+    loadData();
+  };
 
   const tabConfig = { ...VIEW_CONFIG, check: { label: "Чеки" } };
 
@@ -331,6 +352,7 @@ export default function CashierPage({ logout, employeeId }) {
         <>
           {view?.filters && (
             <FilterBar
+              key={resetKey}
               filters={view.filters}
               values={filterValues}
               onChange={handleFilterChange}
