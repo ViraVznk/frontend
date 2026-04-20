@@ -67,30 +67,152 @@ const VIEW_CONFIG = {
       { key: "products_number", label: "Кількість" },
     ],
   },
-   customerCard:{
+  customerCard: {
     label: "Клієнти",
     url: "/api/customer-cards",
     canAdd: true, canDelete: true, canEdit: true,
-    columns: [{ key: "card_number", label: "card_number" },
-          { key: "cust_surname", label: "cust_surname" },
-    { key: "cust_name", label: "cust_name" },
-    { key: "cust_patronymic", label: "cust_patronymic" },
-    { key: "phone_number", label: "phone_number" },
-    { key: "city", label: "city" },
-    { key: "street", label: "street" },
-          { key: "zip_code", label: "zip_code" },
-    { key: "percent", label: "percent" },
-   
+    columns: [
+      { key: "card_number", label: "card_number" },
+      { key: "cust_surname", label: "cust_surname" },
+      { key: "cust_name", label: "cust_name" },
+      { key: "cust_patronymic", label: "cust_patronymic" },
+      { key: "phone_number", label: "phone_number" },
+      { key: "city", label: "city" },
+      { key: "street", label: "street" },
+      { key: "zip_code", label: "zip_code" },
+      { key: "percent", label: "percent" },
     ],
   },
 };
+
+const EMPLOYEE_FIELD_LABELS = {
+  id_employee: "ID",
+  empl_surname: "Прізвище",
+  empl_name: "Ім'я",
+  empl_patronymic: "По батькові",
+  empl_role: "Роль",
+  salary: "Зарплата",
+  date_of_birth: "Дата народження",
+  date_of_start: "Дата початку роботи",
+  phone_number: "Телефон",
+  city: "Місто",
+  street: "Вулиця",
+  zip_code: "ZIP-код",
+};
+
+function EmployeeProfileModal({ employee, onClose }) {
+  if (!employee) return null;
+
+  const initials = [employee.empl_name?.[0], employee.empl_surname?.[0]]
+    .filter(Boolean).join("").toUpperCase();
+
+  return (
+    /* Overlay */
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 160,
+        background: "rgb(255, 255, 255)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        border: "0.7px solid #4e4b4b",
+        borderRadius: 8,
+        zIndex: 1000,
+      }}
+    >
+      {/* Card */}
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: "var(--color-background-primary)",
+          borderRadius: "var(--border-radius-lg)",
+          border: "0.5px solid var(--color-border-tertiary)",
+          padding: "1.5rem",
+          minWidth: 340,
+          maxWidth: 460,
+          width: "50%",
+          position: "relative",
+        }}
+      >
+        <button
+          onClick={onClose}
+          style={{
+            position: "absolute", top: 12, right: 12,
+            background: "transparent",
+            border: "0.5px solid var(--color-border-tertiary)",
+            borderRadius: "var(--border-radius-md)",
+            width: 28, height: 28,
+            cursor: "pointer",
+            fontSize: 14,
+            color: "var(--color-text-secondary)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+          aria-label="Закрити"
+        >✕</button>
+
+        {/* Avatar + name */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: "50%",
+            background: "var(--color-background-info)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontWeight: 500, fontSize: 16,
+            color: "var(--color-text-info)",
+            flexShrink: 0,
+          }}>
+            {initials || "?"}
+          </div>
+          <div>
+            <p style={{ margin: 0, fontWeight: 500, fontSize: 16, color: "var(--color-text-primary)" }}>
+              {[employee.empl_surname, employee.empl_name, employee.empl_patronymic].filter(Boolean).join(" ")}
+            </p>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--color-text-secondary)" }}>
+              {employee.empl_role}
+            </p>
+          </div>
+        </div>
+
+        {/* Info table */}
+        <div style={{ borderTop: "0.5px solid var(--color-border-tertiary)", paddingTop: 14 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <tbody>
+              {Object.entries(EMPLOYEE_FIELD_LABELS)
+                .filter(([key]) => !["empl_surname", "empl_name", "empl_patronymic", "empl_role"].includes(key))
+                .map(([key, label]) => (
+                  <tr key={key}>
+                    <td style={{ color: "var(--color-text-secondary)", padding: "5px 0", width: "45%" }}>{label}</td>
+                    <td style={{ color: "var(--color-text-primary)", padding: "5px 0", textAlign: "right" }}>
+                      {employee[key] ?? "—"}
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function CashierPage({ logout, employeeId }) {
   const [activeView, setActiveView] = useState("categories");
   const [data, setData] = useState([]);
   const [filterValues, setFilterValues] = useState({});
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [selfInfo, setSelfInfo] = useState(null);
+  const [selfLoading, setSelfLoading] = useState(false);
 
   const view = VIEW_CONFIG[activeView];
+
+  useEffect(() => {
+    if (!employeeId) return;
+    setSelfLoading(true);
+    fetch(`/api/employees/${employeeId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(d => setSelfInfo(d))
+      .catch(() => setSelfInfo(null))
+      .finally(() => setSelfLoading(false));
+  }, [employeeId]);
 
   const loadData = (overrideUrl) => {
     if (activeView === "check" || !view) return;
@@ -148,11 +270,57 @@ export default function CashierPage({ logout, employeeId }) {
 
   const tabConfig = { ...VIEW_CONFIG, check: { label: "Чеки" } };
 
+  const displayName = selfInfo
+    ? [selfInfo.empl_name, selfInfo.empl_surname].filter(Boolean).join(" ")
+    : selfLoading ? "…" : employeeId;
+
   return (
     <div style={{ maxWidth: 960, margin: "2rem auto", padding: "0 1rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-        <h1 style={{ fontSize: 22, fontWeight: 500 }}>Cashier Panel</h1>
-        <button onClick={logout}>Logout</button>
+        <h1 style={{ fontSize: 22, fontWeight: 500, margin: 0 }}>Cashier Panel</h1>
+
+        {/* Right side: name button + logout */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            onClick={() => setProfileOpen(true)}
+            title="Переглянути мою інформацію"
+            style={{
+              padding: "5px 14px",
+              borderRadius: 6,
+              border: "0.5px solid var(--color-border-secondary)",
+              background: "var(--color-background-secondary)",
+              cursor: "pointer",
+              fontSize: 13,
+              color: "var(--color-text-primary)",
+              fontWeight: 400,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            {/* person icon */}
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.65 }}>
+              <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.2" />
+              <path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
+            {displayName}
+          </button>
+
+          <button
+            onClick={logout}
+            style={{
+              padding: "5px 14px",
+              borderRadius: 6,
+              border: "0.5px solid var(--color-border-tertiary)",
+              background: "transparent",
+              cursor: "pointer",
+              fontSize: 13,
+              color: "var(--color-text-secondary)",
+            }}
+          >
+            Вийти
+          </button>
+        </div>
       </div>
 
       <TabSwitcher views={VIEWS} activeView={activeView} onChange={setActiveView} config={tabConfig} />
@@ -179,6 +347,14 @@ export default function CashierPage({ logout, employeeId }) {
             />
           )}
         </>
+      )}
+
+      {/* Self-profile modal */}
+      {profileOpen && (
+        <EmployeeProfileModal
+          employee={selfInfo}
+          onClose={() => setProfileOpen(false)}
+        />
       )}
     </div>
   );

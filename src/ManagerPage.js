@@ -4,7 +4,7 @@ import Mchecksview from "./Mchecksview";
 import { PrintPanel } from "./PrintPanel";
 import StatsPage from "./StatsPage";
 
-const VIEWS = ["categories", "products", "storeProduct", "employee", "checks","customerCard" ,"stats"];
+const VIEWS = ["categories", "products", "storeProduct", "employee", "checks", "customerCard", "stats"];
 
 const VIEW_CONFIG = {
   categories: {
@@ -113,28 +113,30 @@ const VIEW_CONFIG = {
   checks: {
     label: "Чеки",
     url: "/api/checks/all",
-    columns: [{ key: "check_number", label: "Номер чеку" },
-    { key: "id_employee", label: "Касир" },
-    { key: "card_number", label: "Картка" },
-    { key: "print_date", label: "Дата" },
-    { key: "sum_total", label: "Сума (₴)" },
-    { key: "vat", label: "ПДВ (₴)" },
+    columns: [
+      { key: "check_number", label: "Номер чеку" },
+      { key: "id_employee", label: "Касир" },
+      { key: "card_number", label: "Картка" },
+      { key: "print_date", label: "Дата" },
+      { key: "sum_total", label: "Сума (₴)" },
+      { key: "vat", label: "ПДВ (₴)" },
     ],
   },
   customerCard: {
     label: "Клієнти",
     url: "/api/customer-cards",
     canAdd: true, canDelete: true, canEdit: true,
-    columns: [{ key: "card_number", label: "card_number" },
-    { key: "cust_surname", label: "cust_surname" },
-    { key: "cust_name", label: "cust_name" },
-    { key: "cust_patronymic", label: "cust_patronymic" },
-    { key: "phone_number", label: "phone_number" },
-    { key: "city", label: "city" },
-    { key: "street", label: "street" },
-    { key: "zip_code", label: "zip_code" },
-    { key: "percent", label: "percent" },
 
+    columns: [
+      { key: "card_number", label: "card_number" },
+      { key: "cust_surname", label: "cust_surname" },
+      { key: "cust_name", label: "cust_name" },
+      { key: "cust_patronymic", label: "cust_patronymic" },
+      { key: "phone_number", label: "phone_number" },
+      { key: "city", label: "city" },
+      { key: "street", label: "street" },
+      { key: "zip_code", label: "zip_code" },
+      { key: "percent", label: "percent" },
     ],
   },
   stats: {
@@ -144,6 +146,35 @@ const VIEW_CONFIG = {
     columns: [],
   },
 };
+const EMPLOYEE_FILTERS = [
+  { label: "Всі працівники", url: "/api/employees" },
+  { label: "Касири", url: "/api/employees/cashiers" },
+];
+
+function EmployeeFilterBar({ activeUrl, onChange }) {
+  return (
+    <div style={{ display: "flex", gap: 8, marginBottom: "1.5rem" }}>
+      {EMPLOYEE_FILTERS.map(f => {
+        const active = activeUrl === f.url;
+        return (
+          <button
+            key={f.url}
+            onClick={() => onChange(f.url)}
+            style={{
+          padding: "6px 16px",
+          borderRadius: 8,
+          border: "0.5px solid #ccc",
+          background: activeUrl === f.url ? "#f0f0f0" : "transparent",
+          cursor: "pointer",
+          fontWeight: activeUrl === f.url ? 500 : 400,
+        }}>
+            {f.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function ManagerPage({ logout }) {
   const [activeView, setActiveView] = useState("categories");
@@ -151,12 +182,14 @@ export default function ManagerPage({ logout }) {
   const [filterValues, setFilterValues] = useState({});
   const [resetKey, setResetKey] = useState(0);
   const [activeColumns, setActiveColumns] = useState(null);
+  const [employeeUrl, setEmployeeUrl] = useState(EMPLOYEE_FILTERS[0].url);
 
   const view = VIEW_CONFIG[activeView];
 
   const loadData = (overrideUrl) => {
     if (activeView === "checks") return;
-    fetch(overrideUrl ?? view.url)
+    const url = overrideUrl ?? (activeView === "employee" ? employeeUrl : view.url);
+    fetch(url)
       .then(res => res.ok ? res.json() : [])
       .then(d => setData(Array.isArray(d) ? d : []))
       .catch(() => setData([]));
@@ -165,8 +198,13 @@ export default function ManagerPage({ logout }) {
   useEffect(() => {
     setFilterValues({});
     setActiveColumns(null);
+    setEmployeeUrl(EMPLOYEE_FILTERS[0].url);
     if (activeView !== "checks") loadData();
   }, [activeView]);
+
+  useEffect(() => {
+    if (activeView === "employee") loadData(employeeUrl);
+  }, [employeeUrl]);
 
   const handleAdd = (newRow) => {
     const rowWithPromo = {
@@ -262,6 +300,13 @@ export default function ManagerPage({ logout }) {
         </>
       ) : (
         <>
+          {activeView === "employee" && (
+            <EmployeeFilterBar
+              activeUrl={employeeUrl}
+              onChange={setEmployeeUrl}
+            />
+          )}
+
           {view.filters && (
             <FilterBar
               key={resetKey}
@@ -271,6 +316,7 @@ export default function ManagerPage({ logout }) {
               onReset={handleReset}
             />
           )}
+
           {activeView === "stats"
             ? <StatsPage />
             : (
@@ -283,7 +329,7 @@ export default function ManagerPage({ logout }) {
                   onEdit={activeColumns ? undefined : view.canEdit ? handleEdit : undefined}
                 />
                 <PrintPanel
-                  url={view.url}
+                  url={activeView === "employee" ? employeeUrl : view.url}
                   columns={view.columns}
                   title={view.label}
                 />
@@ -294,5 +340,4 @@ export default function ManagerPage({ logout }) {
       )}
     </div>
   );
-
 }

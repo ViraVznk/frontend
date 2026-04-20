@@ -48,11 +48,9 @@ function ModeTabs({ mode, setMode, canAdd }) {
       {tabs.map(t => (
         <button key={t.key} onClick={() => setMode(t.key)} style={{
           padding: "5px 14px", borderRadius: 6, border: "none",
-          background: mode === t.key ? "#fff" : "transparent",
+         background: mode === t.key ? "#fff" : "transparent",
           fontWeight: mode === t.key ? 600 : 400,
           fontSize: 13, cursor: "pointer",
-          boxShadow: mode === t.key ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
-          transition: "all 0.15s",
           color: mode === t.key ? "#333" : "#666",
         }}>{t.label}</button>
       ))}
