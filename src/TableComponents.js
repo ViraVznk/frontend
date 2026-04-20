@@ -332,7 +332,7 @@ export function TabSwitcher({ views, activeView, onChange, config }) {
           padding: "6px 16px",
           borderRadius: 8,
           border: "0.5px solid #ccc",
-          background: activeView === key ? "#f0f0f0" : "transparent",
+          background: activeView === key ? "#e6b1d2" : "transparent",
           cursor: "pointer",
           fontWeight: activeView === key ? 500 : 400,
         }}>

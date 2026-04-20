@@ -26,11 +26,11 @@ const VIEW_CONFIG = {
         foreignKey: { url: "/api/categories", valueKey: "category_number", labelKey: "category_name" },
         buildUrl: (value) => value ? `/api/products/bycategory/${value}` : `/api/products`,
       },
-      {
-        label: "Пошук за назвою",
-        type: "search",
-        buildUrl: (value) => value ? `/api/products/search?name=${encodeURIComponent(value)}` : `/api/products`,
-      },
+      // {
+      //   label: "Пошук за назвою",
+      //   type: "search",
+      //   buildUrl: (value) => value ? `/api/products/search?name=${encodeURIComponent(value)}` : `/api/products`,
+      // },
     ],
     columns: [
       { key: "id_product", label: "ID" },
@@ -112,7 +112,7 @@ const VIEW_CONFIG = {
     columns: [
       { key: "upc", label: "UPC" },
       { key: "upc_prom", label: "Акційний UPC" },
-      { key: "id_product", label: "Назва", foreignKey: { url: "/api/products", valueKey: "id_product", labelKey: "product_name" } },
+      { key: "id_product", label: "Продукт", foreignKey: { url: "/api/products", valueKey: "id_product", labelKey: "product_name" } },
       { key: "selling_price", label: "Ціна" },
       { key: "products_number", label: "Кількість" },
     ],
@@ -295,7 +295,7 @@ export default function ManagerPage({ logout }) {
     <div style={{ maxWidth: 960, margin: "2rem auto", padding: "0 1rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <h1 style={{ fontSize: 22, fontWeight: 500, margin: 0 }}>Manager Panel</h1>
-        <button onClick={logout} style={{ padding: "5px 14px", borderRadius: 6, border: "0.5px solid #ccc", background: "transparent", cursor: "pointer", fontSize: 13 }}>
+        <button onClick={logout} style={{ padding: "5px 14px", borderRadius: 6, border: "0.5px solid #cccccc", background: "transparent", cursor: "pointer", fontSize: 13 }}>
           Вийти
         </button>
       </div>
