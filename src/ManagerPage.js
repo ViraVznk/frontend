@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { UniversalTable, TabSwitcher, FilterBar } from "./TableComponents";
 import Mchecksview from "./Mchecksview";
+import { PrintPanel } from "./PrintPanel";
+import StatsPage from "./StatsPage";
 
-const VIEWS = ["categories", "products", "storeProduct", "employee", "checks"];
+const VIEWS = ["categories", "products", "storeProduct", "employee", "checks", "stats"];
 
 const VIEW_CONFIG = {
   categories: {
@@ -11,7 +13,7 @@ const VIEW_CONFIG = {
     canAdd: true, canDelete: true, canEdit: true,
     columns: [
       { key: "category_number", label: "ID" },
-      { key: "category_name",   label: "Назва" },
+      { key: "category_name", label: "Назва" },
     ],
   },
   products: {
@@ -31,10 +33,10 @@ const VIEW_CONFIG = {
       },
     ],
     columns: [
-      { key: "id_product",      label: "ID" },
+      { key: "id_product", label: "ID" },
       { key: "category_number", label: "Категорія", foreignKey: { url: "/api/categories", valueKey: "category_number", labelKey: "category_name" } },
-      { key: "product_name",    label: "Назва" },
-      { key: "manufacturer",    label: "Виробник" },
+      { key: "product_name", label: "Назва" },
+      { key: "manufacturer", label: "Виробник" },
       { key: "characteristics", label: "Характеристики" },
     ],
   },
@@ -43,17 +45,17 @@ const VIEW_CONFIG = {
     url: "/api/employees",
     canAdd: true, canDelete: true, canEdit: true,
     columns: [
-      { key: "id_employee",    label: "ID" },
-      { key: "empl_surname",   label: "Прізвище" },
-      { key: "empl_name",      label: "Ім'я" },
-      { key: "empl_role",      label: "Роль" },
-      { key: "salary",         label: "Зарплата" },
-      { key: "date_of_birth",  label: "Дата народження" },
-      { key: "date_of_start",  label: "Дата початку" },
-      { key: "phone_number",   label: "Телефон" },
-      { key: "city",           label: "Місто" },
-      { key: "street",         label: "Вулиця" },
-      { key: "zip_code",       label: "ZIP" },
+      { key: "id_employee", label: "ID" },
+      { key: "empl_surname", label: "Прізвище" },
+      { key: "empl_name", label: "Ім'я" },
+      { key: "empl_role", label: "Роль" },
+      { key: "salary", label: "Зарплата" },
+      { key: "date_of_birth", label: "Дата народження" },
+      { key: "date_of_start", label: "Дата початку" },
+      { key: "phone_number", label: "Телефон" },
+      { key: "city", label: "Місто" },
+      { key: "street", label: "Вулиця" },
+      { key: "zip_code", label: "ZIP" },
     ],
   },
   storeProduct: {
@@ -65,7 +67,7 @@ const VIEW_CONFIG = {
         label: "Тип товару",
         type: "select-static",
         options: [
-          { value: "all",     label: "Всі" },
+          { value: "all", label: "Всі" },
           { value: "notprom", label: "Не акційні" },
         ],
         buildUrl: (type, sort) => type === "notprom"
@@ -78,30 +80,44 @@ const VIEW_CONFIG = {
         dependsOn: "Тип товару",
         dependsOnValues: ["notprom"],
         options: [
-          { value: "name",     label: "Назва" },
+          { value: "name", label: "Назва" },
           { value: "quantity", label: "Кількість" },
         ],
       },
     ],
     columns: [
-      { key: "upc",             label: "UPC" },
-      { key: "upc_prom",        label: "Акційний UPC" },
-      { key: "product_id",      label: "Назва", foreignKey: { url: "/api/products", valueKey: "id_product", labelKey: "product_name" } },
-      { key: "selling_price",   label: "Ціна" },
+      { key: "upc", label: "UPC" },
+      { key: "upc_prom", label: "Акційний UPC" },
+      { key: "product_id", label: "Назва", foreignKey: { url: "/api/products", valueKey: "id_product", labelKey: "product_name" } },
+      { key: "selling_price", label: "Ціна" },
       { key: "products_number", label: "Кількість" },
     ],
   },
   checks: {
     label: "Чеки",
     // no url/columns — rendered via ManagerChecksView
+    url: "/api/checks/all",
+    columns: [{ key: "check_number", label: "Номер чеку" },
+    { key: "id_employee", label: "Касир" },
+    { key: "card_number", label: "Картка" },
+    { key: "print_date", label: "Дата" },
+    { key: "sum_total", label: "Сума (₴)" },
+    { key: "vat", label: "ПДВ (₴)" },
+    ],
   },
+  stats: {
+    label: "★",
+    url: null,
+    canAdd: false, canDelete: false, canEdit: false,
+    columns: [],
+  }
 };
 
 export default function ManagerPage({ logout }) {
-  const [activeView, setActiveView]   = useState("categories");
-  const [data, setData]               = useState([]);
+  const [activeView, setActiveView] = useState("categories");
+  const [data, setData] = useState([]);
   const [filterValues, setFilterValues] = useState({});
-  const [resetKey, setResetKey]       = useState(0);
+  const [resetKey, setResetKey] = useState(0);
 
   const view = VIEW_CONFIG[activeView];
 
@@ -175,7 +191,14 @@ export default function ManagerPage({ logout }) {
       <TabSwitcher views={VIEWS} activeView={activeView} onChange={setActiveView} config={VIEW_CONFIG} />
 
       {activeView === "checks" ? (
-        <Mchecksview />
+        <>
+          <Mchecksview />
+          <PrintPanel
+            url={VIEW_CONFIG.checks.url}
+            columns={VIEW_CONFIG.checks.columns}
+            title={VIEW_CONFIG.checks.label}
+          />
+        </>
       ) : (
         <>
           {view.filters && (
@@ -187,15 +210,28 @@ export default function ManagerPage({ logout }) {
               onReset={handleReset}
             />
           )}
-          <UniversalTable
-            columns={view.columns}
-            data={data}
-            onAdd={view.canAdd ? handleAdd : undefined}
-            onDelete={view.canDelete ? handleDelete : undefined}
-            onEdit={view.canEdit ? handleEdit : undefined}
-          />
+          {activeView === "stats"
+            ? <StatsPage />
+            : (
+              <>
+                <UniversalTable
+                  columns={view.columns}
+                  data={data}
+                  onAdd={view.canAdd ? handleAdd : undefined}
+                  onDelete={view.canDelete ? handleDelete : undefined}
+                  onEdit={view.canEdit ? handleEdit : undefined}
+                />
+                <PrintPanel
+                  url={view.url}
+                  columns={view.columns}
+                  title={view.label}
+                />
+              </>
+            )
+          }
         </>
       )}
     </div>
   );
+
 }
