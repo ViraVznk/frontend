@@ -4,7 +4,7 @@ import Mchecksview from "./Mchecksview";
 import { PrintPanel } from "./PrintPanel";
 import StatsPage from "./StatsPage";
 
-const VIEWS = ["categories", "products", "storeProduct", "employee", "checks", "stats"];
+const VIEWS = ["categories", "products", "storeProduct", "employee", "checks","customerCard" ,"stats"];
 
 const VIEW_CONFIG = {
   categories: {
@@ -95,7 +95,6 @@ const VIEW_CONFIG = {
   },
   checks: {
     label: "Чеки",
-    // no url/columns — rendered via ManagerChecksView
     url: "/api/checks/all",
     columns: [{ key: "check_number", label: "Номер чеку" },
     { key: "id_employee", label: "Касир" },
@@ -105,12 +104,28 @@ const VIEW_CONFIG = {
     { key: "vat", label: "ПДВ (₴)" },
     ],
   },
+  customerCard:{
+    label: "Клієнти",
+    url: "/api/customer-cards",
+    canAdd: true, canDelete: true, canEdit: true,
+    columns: [{ key: "card_number", label: "card_number" },
+          { key: "cust_surname", label: "cust_surname" },
+    { key: "cust_name", label: "cust_name" },
+    { key: "cust_patronymic", label: "cust_patronymic" },
+    { key: "phone_number", label: "phone_number" },
+    { key: "city", label: "city" },
+    { key: "street", label: "street" },
+          { key: "zip_code", label: "zip_code" },
+    { key: "percent", label: "percent" },
+   
+    ],
+  },
   stats: {
     label: "★",
     url: null,
     canAdd: false, canDelete: false, canEdit: false,
     columns: [],
-  }
+  },
 };
 
 export default function ManagerPage({ logout }) {

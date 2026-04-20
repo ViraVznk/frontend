@@ -24,7 +24,27 @@ export function formatDate(raw) {
   });
 }
 
-// ── SalesPanel — завжди видимий, без toggle ───────────────────────────────────
+export const btnStyle = (color) => ({
+  background: color,
+  border: "none",
+  borderRadius: 6,
+  color: "#fff",
+  cursor: "pointer",
+  padding: "4px 10px",
+  whiteSpace: "nowrap",
+  fontSize: 13,
+});
+
+export const deleteBtnStyle = {
+  background: "none",
+  border: "0.5px solid #f0c0c0",
+  borderRadius: 6,
+  color: "#e53935",
+  cursor: "pointer",
+  fontSize: 13,
+  padding: "2px 8px",
+  lineHeight: 1.4,
+};
 
 export function SalesPanel({ checkNumber }) {
   const [sales, setSales] = useState(null);
@@ -39,11 +59,7 @@ export function SalesPanel({ checkNumber }) {
   }, [checkNumber]);
 
   return (
-    <div style={{
-      padding: "10px 20px 12px",
-      background: "#f9fafb",
-      borderTop: "0.5px solid #ebebeb",
-    }}>
+    <div style={{ padding: "10px 20px 12px", background: "#f9fafb", borderTop: "0.5px solid #ebebeb" }}>
       {loading ? (
         <span style={{ fontSize: 12, color: "#bbb" }}>Завантаження…</span>
       ) : !sales || sales.length === 0 ? (
@@ -73,12 +89,11 @@ export function SalesPanel({ checkNumber }) {
   );
 }
 
-// ── CheckRow — товари завжди під рядком ───────────────────────────────────────
-
 export function CheckRow({ check, columns, onDelete, canDelete }) {
   return (
     <>
-      <tr style={{ background: "white" }}
+      <tr
+        style={{ background: "white" }}
         onMouseEnter={e => e.currentTarget.style.background = "#fafafa"}
         onMouseLeave={e => e.currentTarget.style.background = "white"}
       >
@@ -89,27 +104,18 @@ export function CheckRow({ check, columns, onDelete, canDelete }) {
         ))}
         {canDelete && (
           <td style={{ ...tdStyle, width: 50 }}>
-            <button
-              onClick={() => onDelete(check)}
-              style={deleteBtnStyle}
-              title="Видалити чек"
-            >✕</button>
+            <button onClick={() => onDelete(check)} style={deleteBtnStyle} title="Видалити чек">✕</button>
           </td>
         )}
       </tr>
       <tr>
-        <td
-          colSpan={columns.length + (canDelete ? 1 : 0)}
-          style={{ padding: 0, borderBottom: "1px solid #e0e0e0" }}
-        >
+        <td colSpan={columns.length + (canDelete ? 1 : 0)} style={{ padding: 0, borderBottom: "1px solid #e0e0e0" }}>
           <SalesPanel checkNumber={check.check_number} />
         </td>
       </tr>
     </>
   );
 }
-
-// ── EmployeeDropdown — dropdown при кліку ─────────────────────────────────────
 
 export function EmployeeDropdown({ value, onChange }) {
   const [employees, setEmployees] = useState([]);
@@ -119,24 +125,18 @@ export function EmployeeDropdown({ value, onChange }) {
   useEffect(() => {
     fetch("/api/employees")
       .then(r => r.json())
-      .then(data => setEmployees(
-        data.filter(e => (e.empl_role ?? "").toLowerCase() === "cashier")
-      ))
+      .then(data => setEmployees(data.filter(e => (e.empl_role ?? "").toLowerCase() === "cashier")))
       .catch(console.error);
   }, []);
 
   useEffect(() => {
-    const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
   }, []);
 
   const selected = employees.find(e => e.id_employee === value);
-  const label = selected
-    ? `${selected.empl_surname} ${selected.empl_name}`
-    : "Всі касири";
+  const label = selected ? `${selected.empl_surname} ${selected.empl_name}` : "Всі касири";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -155,7 +155,6 @@ export function EmployeeDropdown({ value, onChange }) {
           <span>{label}</span>
           <span style={{ fontSize: 10, color: "#aaa" }}>{open ? "▲" : "▼"}</span>
         </button>
-
         {open && (
           <div style={{
             position: "absolute", top: "calc(100% + 4px)", left: 0,
@@ -173,24 +172,20 @@ export function EmployeeDropdown({ value, onChange }) {
                 color: value === null ? "#333" : "#888",
                 fontWeight: value === null ? 500 : 400,
               }}
-            >
-              — Всі касири —
-            </div>
+            >— Всі касири —</div>
             {employees.map(e => {
-              const isSelected = value === e.id_employee;
+              const isSel = value === e.id_employee;
               return (
-                <div
-                  key={e.id_employee}
-                  onMouseDown={() => { onChange(e.id_employee); setOpen(false); }}
+                <div key={e.id_employee} onMouseDown={() => { onChange(e.id_employee); setOpen(false); }}
                   style={{
                     padding: "8px 12px", cursor: "pointer", fontSize: 13,
-                    background: isSelected ? "#f0f0f0" : "transparent",
+                    background: isSel ? "#f0f0f0" : "transparent",
                     borderBottom: "0.5px solid #f5f5f5",
                     display: "flex", justifyContent: "space-between", alignItems: "center",
-                    fontWeight: isSelected ? 500 : 400,
+                    fontWeight: isSel ? 500 : 400,
                   }}
-                  onMouseEnter={ev => { if (!isSelected) ev.currentTarget.style.background = "#fafafa"; }}
-                  onMouseLeave={ev => { ev.currentTarget.style.background = isSelected ? "#f0f0f0" : "transparent"; }}
+                  onMouseEnter={ev => { if (!isSel) ev.currentTarget.style.background = "#fafafa"; }}
+                  onMouseLeave={ev => { ev.currentTarget.style.background = isSel ? "#f0f0f0" : "transparent"; }}
                 >
                   <span style={{ color: "#333" }}>{e.empl_surname} {e.empl_name}</span>
                   <span style={{ fontSize: 11, color: "#aaa" }}>{e.id_employee}</span>
@@ -204,13 +199,171 @@ export function EmployeeDropdown({ value, onChange }) {
   );
 }
 
-export const deleteBtnStyle = {
-  background: "none",
-  border: "0.5px solid #f0c0c0",
-  borderRadius: 6,
-  color: "#e53935",
-  cursor: "pointer",
-  fontSize: 13,
-  padding: "2px 8px",
-  lineHeight: 1.4,
-};
+export function StoreProductDropdown({ value, onChange, products }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) { setOpen(false); setSearch(""); } };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const selected = products.find(p => p.upc === value);
+  const label = selected
+    ? `${selected.product_name ?? selected.upc} (${parseFloat(selected.selling_price).toFixed(2)} ₴)`
+    : "— оберіть товар —";
+
+  const filtered = products.filter(p =>
+    (p.product_name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    p.upc.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div ref={ref} style={{ position: "relative", minWidth: 260 }}>
+      <button
+        onClick={() => { setOpen(o => !o); setSearch(""); }}
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          gap: 8, width: "100%", padding: "4px 8px",
+          border: "none", borderBottom: "1px solid #ccc", borderRadius: 0,
+          background: "transparent", cursor: "pointer", fontSize: 13,
+          color: value ? "#333" : "#aaa", textAlign: "left",
+        }}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
+        <span style={{ fontSize: 10, color: "#aaa", flexShrink: 0 }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 2px)", left: 0,
+          minWidth: 280, background: "#fff",
+          border: "0.5px solid #ddd", borderRadius: 8,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+          zIndex: 9999,
+        }}>
+          <div style={{ padding: "6px 10px", borderBottom: "0.5px solid #eee" }}>
+            <input
+              autoFocus
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Пошук товару…"
+              style={{ width: "100%", border: "none", outline: "none", fontSize: 13, background: "transparent" }}
+            />
+          </div>
+          <div style={{ maxHeight: 200, overflowY: "auto" }}>
+            {filtered.length === 0 ? (
+              <div style={{ padding: "8px 12px", color: "#bbb", fontSize: 13 }}>Нічого не знайдено</div>
+            ) : filtered.map(p => {
+              const isSel = value === p.upc;
+              return (
+                <div key={p.upc} onMouseDown={() => { onChange(p.upc); setOpen(false); setSearch(""); }}
+                  style={{
+                    padding: "8px 12px", cursor: "pointer", fontSize: 13,
+                    background: isSel ? "#f0f0f0" : "transparent",
+                    borderBottom: "0.5px solid #f5f5f5",
+                    display: "flex", justifyContent: "space-between",
+                  }}
+                  onMouseEnter={ev => { if (!isSel) ev.currentTarget.style.background = "#fafafa"; }}
+                  onMouseLeave={ev => { ev.currentTarget.style.background = isSel ? "#f0f0f0" : "transparent"; }}
+                >
+                  <span style={{ color: "#333" }}>{p.product_name ?? p.upc}</span>
+                  <span style={{ color: "#aaa", fontSize: 12 }}>{parseFloat(p.selling_price).toFixed(2)} ₴</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function CheckNumberDropdown({ value, onChange, employeeId }) {
+  const [checks, setChecks] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const url = employeeId ? `/api/checks/employee/${employeeId}?from=2000-01-01T00:00:00&to=2099-01-01T00:00:00` : `/api/checks/all`;
+    fetch(url)
+      .then(r => r.ok ? r.json() : [])
+      .then(setChecks)
+      .catch(console.error);
+  }, [employeeId]);
+
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) { setOpen(false); setSearch(""); } };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const filtered = checks.filter(c =>
+    c.check_number.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const label = value || "— оберіть номер чеку —";
+
+  return (
+    <div ref={ref} style={{ position: "relative", minWidth: 220 }}>
+      <button
+        onClick={() => { setOpen(o => !o); setSearch(""); }}
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          gap: 8, width: "100%", padding: "4px 8px",
+          border: "none", borderBottom: "1.5px solid #ccc", borderRadius: 0,
+          background: "transparent", cursor: "pointer", fontSize: 13,
+          color: value ? "#333" : "#aaa", textAlign: "left",
+        }}
+      >
+        <span>{label}</span>
+        <span style={{ fontSize: 10, color: "#aaa" }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 2px)", left: 0,
+          minWidth: 260, background: "#fff",
+          border: "0.5px solid #ddd", borderRadius: 8,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+          zIndex: 9999,
+        }}>
+          <div style={{ padding: "6px 10px", borderBottom: "0.5px solid #eee" }}>
+            <input
+              autoFocus
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Пошук за номером…"
+              style={{ width: "100%", border: "none", outline: "none", fontSize: 13, background: "transparent" }}
+            />
+          </div>
+          <div style={{ maxHeight: 200, overflowY: "auto" }}>
+            {filtered.length === 0 ? (
+              <div style={{ padding: "8px 12px", color: "#bbb", fontSize: 13 }}>Нічого не знайдено</div>
+            ) : filtered.map(c => {
+              const isSel = value === c.check_number;
+              return (
+                <div key={c.check_number} onMouseDown={() => { onChange(c.check_number); setOpen(false); setSearch(""); }}
+                  style={{
+                    padding: "8px 12px", cursor: "pointer", fontSize: 13,
+                    background: isSel ? "#f0f0f0" : "transparent",
+                    borderBottom: "0.5px solid #f5f5f5",
+                    display: "flex", justifyContent: "space-between",
+                  }}
+                  onMouseEnter={ev => { if (!isSel) ev.currentTarget.style.background = "#fafafa"; }}
+                  onMouseLeave={ev => { ev.currentTarget.style.background = isSel ? "#f0f0f0" : "transparent"; }}
+                >
+                  <span style={{ color: "#333", fontFamily: "monospace" }}>{c.check_number}</span>
+                  <span style={{ color: "#aaa", fontSize: 12 }}>
+                    {c.print_date ? new Date(c.print_date).toLocaleDateString("uk-UA") : ""}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

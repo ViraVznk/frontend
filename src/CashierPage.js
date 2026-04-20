@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { UniversalTable, TabSwitcher, FilterBar } from "./TableComponents";
 import ChecksView from "./ChecksView";
 
-const VIEWS = ["categories", "products", "storeProduct", "check"];
+const VIEWS = ["categories", "products", "storeProduct", "check", "customerCard"];
 
 const VIEW_CONFIG = {
   categories: {
@@ -65,6 +65,22 @@ const VIEW_CONFIG = {
       { key: "product_id", label: "Назва", foreignKey: { url: "/api/products", valueKey: "id_product", labelKey: "product_name" } },
       { key: "selling_price", label: "Ціна" },
       { key: "products_number", label: "Кількість" },
+    ],
+  },
+   customerCard:{
+    label: "Клієнти",
+    url: "/api/customer-cards",
+    canAdd: true, canDelete: true, canEdit: true,
+    columns: [{ key: "card_number", label: "card_number" },
+          { key: "cust_surname", label: "cust_surname" },
+    { key: "cust_name", label: "cust_name" },
+    { key: "cust_patronymic", label: "cust_patronymic" },
+    { key: "phone_number", label: "phone_number" },
+    { key: "city", label: "city" },
+    { key: "street", label: "street" },
+          { key: "zip_code", label: "zip_code" },
+    { key: "percent", label: "percent" },
+   
     ],
   },
 };
