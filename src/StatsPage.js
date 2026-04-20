@@ -52,9 +52,9 @@ const STATS_QUERIES = [
     { key: "category_number", label: "Номер категорії"},
   ],
     columns: [
-      { key: "CARD_NUMBER", label: "номер карти" },
-      { key: "CUST_SURNAME", label: "прізвище" },
-      { key: "CUST_NAME", label: "ім'я" }
+      { key: "card_number", label: "номер карти" },
+      { key: "cust_surname", label: "прізвище" },
+      { key: "cust_name", label: "ім'я" }
     ],
   }
   
