@@ -133,9 +133,10 @@ function EmployeeProfileModal({ employee, onClose }) {
       onClick={onClose}
       style={{
         position: "fixed", inset: 160,
-        background: "rgb(255, 255, 255)",
+        background: "#fbddee",
         display: "flex", alignItems: "center", justifyContent: "center",
-        border: "0.7px solid #4e4b4b",
+        border: "0.7px solid #de97c0",
+         boxShadow: "0 4px 12px rgba(255, 167, 246, 0.31)",
         borderRadius: 8,
         zIndex: 1000,
       }}
@@ -169,7 +170,6 @@ function EmployeeProfileModal({ employee, onClose }) {
           aria-label="Закрити"
         >✕</button>
 
-        {/* Avatar + name */}
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
           <div style={{
             width: 48, height: 48, borderRadius: "50%",
@@ -323,7 +323,6 @@ export default function CashierPage({ logout, employeeId }) {
               gap: 6,
             }}
           >
-            {/* person icon */}
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.65 }}>
               <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.2" />
               <path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
@@ -336,11 +335,11 @@ export default function CashierPage({ logout, employeeId }) {
             style={{
               padding: "5px 14px",
               borderRadius: 6,
-              border: "0.5px solid var(--color-border-tertiary)",
+              border: "0.5px solid #de97c0",
               background: "transparent",
               cursor: "pointer",
               fontSize: 13,
-              color: "var(--color-text-secondary)",
+              color: "#383838",
             }}
           >
             Вийти

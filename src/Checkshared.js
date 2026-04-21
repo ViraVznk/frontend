@@ -35,17 +35,77 @@ export const btnStyle = (color) => ({
   fontSize: 13,
 });
 
-export const deleteBtnStyle = {
-  background: "none",
-  border: "0.5px solid #f0c0c0",
-  borderRadius: 6,
-  color: "#e53935",
-  cursor: "pointer",
-  fontSize: 13,
-  padding: "2px 8px",
-  lineHeight: 1.4,
-};
+function DeleteMenu({ onDelete }) {
+  const [open, setOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
 
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (
+        menuRef.current && !menuRef.current.contains(e.target) &&
+        btnRef.current && !btnRef.current.contains(e.target)
+      ) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const menuHeight = 48;
+      const menuWidth = 160;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceRight = window.innerWidth - rect.right;
+      setMenuPos({
+        top: spaceBelow < menuHeight
+          ? rect.top + window.scrollY - menuHeight
+          : rect.bottom + window.scrollY,
+        left: spaceRight < menuWidth
+          ? rect.right + window.scrollX - menuWidth
+          : rect.left + window.scrollX,
+      });
+    }
+    setOpen(o => !o);
+  };
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        onClick={handleOpen}
+        style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "#5a5959" }}
+      >
+        ⋯
+      </button>
+      {open && (
+        <div ref={menuRef} style={{
+          position: "fixed",
+          top: menuPos.top,
+          left: menuPos.left,
+          background: "#fbddee",
+          border: "0.5px solid #de97c0",
+          borderRadius: 8,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          zIndex: 9999,
+          minWidth: 160,
+          overflow: "hidden",
+        }}>
+          <div
+            style={{ padding: "10px 16px", cursor: "pointer", fontSize: 14, color: "#651413", userSelect: "none" }}
+            onClick={() => { onDelete(); setOpen(false); }}
+            onMouseEnter={e => e.currentTarget.style.background = "#fff5f5"}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+          >
+            Видалити
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 export function SalesPanel({ checkNumber }) {
   const [sales, setSales] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -89,6 +149,7 @@ export function SalesPanel({ checkNumber }) {
   );
 }
 
+
 export function CheckRow({ check, columns, onDelete, canDelete }) {
   return (
     <>
@@ -102,11 +163,12 @@ export function CheckRow({ check, columns, onDelete, canDelete }) {
             {col.key === "print_date" ? formatDate(check[col.key]) : (check[col.key] ?? "—")}
           </td>
         ))}
+        
         {canDelete && (
-          <td style={{ ...tdStyle, width: 50 }}>
-            <button onClick={() => onDelete(check)} style={deleteBtnStyle} title="Видалити чек">✕</button>
-          </td>
-        )}
+            <td style={{ ...tdStyle, width: 50 }}>
+             <DeleteMenu onDelete={() => onDelete(check)} />
+              </td>
+            )}
       </tr>
       <tr>
         <td colSpan={columns.length + (canDelete ? 1 : 0)} style={{ padding: 0, borderBottom: "1px solid #e0e0e0" }}>
@@ -369,4 +431,5 @@ export function CheckNumberDropdown({ value, onChange, employeeId }) {
       )}
     </div>
   );
+  
 }

@@ -176,8 +176,8 @@ function EmployeeFilterBar({ activeUrl, onChange }) {
             style={{
           padding: "6px 16px",
           borderRadius: 8,
-          border: "0.5px solid #ccc",
-          background: activeUrl === f.url ? "#f0f0f0" : "transparent",
+          border: "0.5px solid #bf7fb4",
+          background: activeUrl === f.url ? "#eeb5d7" : "transparent",
           cursor: "pointer",
           fontWeight: activeUrl === f.url ? 500 : 400,
         }}>
@@ -234,12 +234,10 @@ export default function ManagerPage({ logout }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(rowWithPromo),
     }).then(res => {
-      if (!res.ok) res.text().then(msg => alert(msg)); // побачиш точне повідомлення
+      if (!res.ok) res.text().then(msg => alert(msg)); 
       else loadData();
     });
   };
-
-
 
   const handleDelete = (row) => {
     const id = row[view.columns[0].key];
@@ -295,7 +293,7 @@ export default function ManagerPage({ logout }) {
     <div style={{ maxWidth: 960, margin: "2rem auto", padding: "0 1rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <h1 style={{ fontSize: 22, fontWeight: 500, margin: 0 }}>Manager Panel</h1>
-        <button onClick={logout} style={{ padding: "5px 14px", borderRadius: 6, border: "0.5px solid #cccccc", background: "transparent", cursor: "pointer", fontSize: 13 }}>
+        <button onClick={logout} style={{ padding: "5px 14px", borderRadius: 6, border: "0.5px solid #f7b7ed", background: "transparent", cursor: "pointer", fontSize: 13 }}Вийти>
           Вийти
         </button>
       </div>

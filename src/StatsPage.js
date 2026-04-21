@@ -97,8 +97,8 @@ export default function StatsPage() {
             onClick={() => handleSelect(q)}
             style={{
               padding: "6px 16px", borderRadius: 8,
-              border: "0.5px solid #ccc",
-              background: activeQuery?.id === q.id ? "#f0f0f0" : "transparent",
+              border: "0.5px solid #e6b1d2",
+              background: activeQuery?.id === q.id ? "#ffebf7" : "transparent",
               cursor: "pointer",
               fontWeight: activeQuery?.id === q.id ? 500 : 400,
             }}
@@ -123,7 +123,7 @@ export default function StatsPage() {
                 onChange={e => setParamValues(prev => ({ ...prev, [p.key]: e.target.value }))}
                 onKeyDown={e => e.key === "Enter" && handleRun()}
                 style={{
-                  border: "none", borderBottom: "1px solid #aaa",
+                  border: "none", borderBottom: "1px solid #de97c0",
                   outline: "none", fontSize: 14, background: "transparent", padding: "2px 0",
                 }}
               />
@@ -135,7 +135,7 @@ export default function StatsPage() {
             
             style={{
               marginTop: 8, padding: "6px 16px", borderRadius: 8,
-              border: "0.5px solid #ccc", cursor: "pointer",
+              border: "0.5px solid #de97c0", cursor: "pointer",
               background: "transparent", fontSize: 13,
             }}
           >

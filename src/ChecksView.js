@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckRow, SalesPanel, CheckNumberDropdown, StoreProductDropdown, thStyle, tdStyle, btnStyle, deleteBtnStyle } from "./Checkshared";
+import { CheckRow, SalesPanel, CheckNumberDropdown, StoreProductDropdown, thStyle, tdStyle, btnStyle } from "./Checkshared";
 
 function todayRange() {
   const now = new Date();
@@ -29,7 +29,7 @@ function DateTimeInput({ label, value, onChange }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
       <label style={{ fontSize: 11, color: "#888", fontWeight: 500, letterSpacing: "0.04em" }}>{label}</label>
       <input type="datetime-local" value={toInputVal(value)} onChange={handleChange}
-        style={{ border: "none", borderBottom: "1.5px solid #ccc", outline: "none", fontSize: 13, padding: "4px 2px", background: "transparent", cursor: "pointer", color: "#333" }} />
+        style={{ border: "none", borderBottom: "1.5px solid #de97c0", outline: "none", fontSize: 13, padding: "4px 2px", background: "transparent", cursor: "pointer", color: "#333" }} />
     </div>
   );
 }
@@ -44,7 +44,7 @@ const TABS = [
 function ModeTabs({ mode, setMode, canAdd }) {
   const tabs = canAdd ? TABS : TABS.filter(t => t.key !== "add");
   return (
-    <div style={{ display: "flex", background: "#f0f0f0", borderRadius: 8, padding: 3, gap: 2, flexWrap: "wrap", marginBottom: 16 }}>
+    <div style={{ display: "flex", background: "#fbddee", borderRadius: 8, padding: 3, gap: 2, flexWrap: "wrap", marginBottom: 16 }}>
       {tabs.map(t => (
         <button key={t.key} onClick={() => setMode(t.key)} style={{
           padding: "5px 14px", borderRadius: 6, border: "none",
@@ -79,12 +79,12 @@ function CheckSearchPanel({ employeeId }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <label style={{ fontSize: 11, color: "#888", fontWeight: 500, letterSpacing: "0.04em" }}>НОМЕР ЧЕКУ</label>
+          <label style={{ fontSize: 11, color: "#313131", fontWeight: 500, letterSpacing: "0.04em" }}>НОМЕР ЧЕКУ</label>
           <CheckNumberDropdown value={selected} onChange={handleSelect} employeeId={employeeId} />
         </div>
-        <button onClick={() => search(selected)} disabled={!selected} style={btnStyle("#666f76")}>Знайти</button>
+        <button onClick={() => search(selected)} disabled={!selected} style={btnStyle("#e6b1d2")}>Знайти</button>
         {result && (
-          <button onClick={() => { setResult(null); setSelected(""); }} style={btnStyle("#aaa")}>✕</button>
+          <button onClick={() => { setResult(null); setSelected(""); }} style={btnStyle("#e6b1d2")}>✕</button>
         )}
       </div>
 
@@ -92,8 +92,8 @@ function CheckSearchPanel({ employeeId }) {
       {result?.notFound && <div style={{ fontSize: 13, color: "#e53935" }}>Чек не знайдено</div>}
 
       {result?.check && (
-        <div style={{ border: "0.5px solid #ddd", borderRadius: 10, overflow: "hidden" }}>
-          <div style={{ padding: "12px 16px", background: "#f5f5f5", display: "flex", flexWrap: "wrap", gap: 20 }}>
+        <div style={{ border: "0.5px solid #de97c0", borderRadius: 10, overflow: "hidden" }}>
+          <div style={{ padding: "12px 16px", background: "#fbddee", display: "flex", flexWrap: "wrap", gap: 20 }}>
             {[
               ["Номер", result.check.check_number],
               ["Касир", result.check.id_employee],
@@ -103,7 +103,7 @@ function CheckSearchPanel({ employeeId }) {
               ["ПДВ", `${parseFloat(result.check.vat ?? 0).toFixed(2)} ₴`],
             ].map(([lbl, val]) => (
               <div key={lbl} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 11, color: "#aaa", fontWeight: 500 }}>{lbl}</span>
+                <span style={{ fontSize: 11, color: "#7f7e7e", fontWeight: 500 }}>{lbl}</span>
                 <span style={{ fontSize: 13, color: "#333", fontWeight: 500 }}>{val}</span>
               </div>
             ))}
@@ -194,9 +194,9 @@ function AddCheckPanel({ employeeId, onAdded }) {
       </div>
       <div>
         <div style={{ fontSize: 11, color: "#888", fontWeight: 500, marginBottom: 8 }}>ТОВАРИ</div>
-        <div style={{ border: "0.5px solid #ddd", borderRadius: 8, overflow: "visible" }}>
+        <div style={{ border: "0.5px solid #de97c0", borderRadius: 8, overflow: "visible" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-            <thead style={{ background: "#f5f5f5" }}>
+            <thead style={{ background: "#fbddee" }}>
               <tr>
                 <th style={{ ...thStyle, fontSize: 12 }}>Товар</th>
                 <th style={{ ...thStyle, fontSize: 12, width: 90 }}>К-сть</th>
@@ -220,19 +220,20 @@ function AddCheckPanel({ employeeId, onAdded }) {
                   </td>
                   <td style={tdStyle}>
                     {items.length > 1 && (
-                      <button onClick={() => removeItem(i)} style={deleteBtnStyle}>✕</button>
-                    )}
+                  <button onClick={() => removeItem(i)} style={{background: "none", border: "none", cursor: "pointer",fontSize: 16, color: "#e53935", padding: "2px 6px",
+                        }}>✕</button>                    
+                        )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <button onClick={addItem} style={{ ...btnStyle("#888"), marginTop: 8, fontSize: 12 }}>+ Додати товар</button>
+        <button onClick={addItem} style={{ ...btnStyle("#e6b1d2"), marginTop: 8, fontSize: 12 }}>+ Додати товар</button>
       </div>
 
       <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={handleSubmit} disabled={saving} style={btnStyle("#4caf50")}>
+        <button onClick={handleSubmit} disabled={saving} style={btnStyle("#e6b1d2")}>
           {saving ? "Збереження…" : "✓ Зберегти"}
         </button>
       </div>
@@ -300,7 +301,7 @@ export default function ChecksView({ employeeId, canDelete = true, canAdd = fals
         <div className="no-print" style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 16 }}>
           <DateTimeInput label="Від" value={from} onChange={v => v && setFrom(v)} />
           <DateTimeInput label="До" value={to} onChange={v => v && setTo(v)} />
-          <button onClick={load} style={btnStyle("#666f76")}>Застосувати</button>
+          <button onClick={load} style={btnStyle("#e6b1d2")}>Застосувати</button>
         </div>
       )}
 
@@ -320,9 +321,9 @@ export default function ChecksView({ employeeId, canDelete = true, canAdd = fals
       )}
 
       {isTableMode && (
-        <div id="checks-print-area" style={{ overflow: "auto", maxHeight: "65vh", border: "0.5px solid #ddd", borderRadius: 12 }}>
+        <div id="checks-print-area" style={{ overflow: "auto", maxHeight: "65vh", border: "0.5px solid #de97c0", borderRadius: 12 }}>
           <table style={{ width: "max-content", minWidth: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-            <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "#f5f5f5" }}>
+            <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "#fbddee" }}>
               <tr>
                 {COLUMNS.map(col => <th key={col.key} style={thStyle}>{col.label}</th>)}
                 {canDelete && <th style={{ ...thStyle, width: 50 }}></th>}

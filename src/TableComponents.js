@@ -5,12 +5,12 @@ export const thStyle = {
   textAlign: "left",
   fontWeight: 500,
   color: "#666",
-  borderBottom: "0.5px solid #ddd"
+  borderBottom: "0.5px solid #de97c0"
 };
 
 export const tdStyle = {
   padding: "10px 14px",
-  borderBottom: "0.5px solid #eee"
+  borderBottom: "0.5px solid #de97c0"
 };
 
 function FkInput({ col, value, onChange }) {
@@ -87,10 +87,10 @@ function FkInput({ col, value, onChange }) {
           top: dropPos.top,
           left: dropPos.left,
           width: dropPos.width,
-          background: "#fff",
-          border: "0.5px solid #ddd",
+          background: "#fbddee",
+          border: "0.5px solid #de97c0",
           borderRadius: 8,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+          boxShadow: "0 4px 12px rgba(255, 167, 246, 0.31)",
           zIndex: 9999,
           maxHeight: 200,
           overflowY: "auto",
@@ -103,7 +103,7 @@ function FkInput({ col, value, onChange }) {
               setOpen(false);
             }}
           >
-            <span style={{ color: "#888" }}>— Всі —</span>
+            <span style={{ color: "#5e5c5c" }}>— Всі —</span>
           </div>
           {filtered.map(opt => (
             <div
@@ -118,7 +118,7 @@ function FkInput({ col, value, onChange }) {
               }}
             >
               <span style={{ fontWeight: 500 }}>{opt[col.foreignKey.valueKey]}</span>
-              <span style={{ color: "#888", marginLeft: 8 }}>{opt[col.foreignKey.labelKey]}</span>
+              <span style={{ color: "#525151", marginLeft: 8 }}>{opt[col.foreignKey.labelKey]}</span>
             </div>
           ))}
         </div>
@@ -168,7 +168,7 @@ function ActionMenu({ onEdit, onDelete, row, i, editingIndex, setEditingIndex, s
   if (editingIndex === i) {
     return (
       <div style={{ display: "flex", gap: 6 }}>
-        <button onClick={() => handleEditSave(row)} style={btnStyle("#4caf50")}>✓</button>
+        <button onClick={() => handleEditSave(row)} style={btnStyle("#e6b1d2")}>✓</button>
         <button onClick={() => { setEditingIndex(null); setEditRow({}); }} style={btnStyle("#aaa")}>✕</button>
       </div>
     );
@@ -177,7 +177,7 @@ function ActionMenu({ onEdit, onDelete, row, i, editingIndex, setEditingIndex, s
   return (
     <>
       <button ref={btnRef} onClick={handleOpen}
-        style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "#888" }}>
+        style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "#5a5959" }}>
         ⋯
       </button>
 
@@ -186,8 +186,8 @@ function ActionMenu({ onEdit, onDelete, row, i, editingIndex, setEditingIndex, s
           position: "fixed",
           top: menuPos.top,
           left: menuPos.left,
-          background: "#fff",
-          border: "0.5px solid #ddd",
+          background: "#fbddee",
+          border: "0.5px solid #de97c0",
           borderRadius: 8,
           boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
           zIndex: 9999,
@@ -204,7 +204,7 @@ function ActionMenu({ onEdit, onDelete, row, i, editingIndex, setEditingIndex, s
             </div>
           )}
           {onDelete && (
-            <div style={{ ...menuItemStyle, color: "#e53935" }} onClick={() => {
+            <div style={{ ...menuItemStyle, color: "#8c1c1a" }} onClick={() => {
               onDelete(row);
               setOpen(false);
             }}>
@@ -254,9 +254,9 @@ export function UniversalTable({ columns, data, onAdd, onDelete, onEdit }) {
   const showActions = onDelete || onEdit;
 
   return (
-    <div style={{ overflow: "auto", maxHeight: "70vh", border: "0.5px solid #ddd", borderRadius: 12 }}>
+    <div style={{ overflow: "auto", maxHeight: "70vh", border: "0.5px solid #de97c0", borderRadius: 12 }}>
       <table style={{ width: "max-content", minWidth: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-        <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "#f5f5f5" }}>
+        <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "#fbddee" }}>
           <tr>
             {columns.map(col => (
               <th key={col.key} style={{ ...thStyle, whiteSpace: "nowrap" }}>{col.label}</th>
@@ -314,7 +314,7 @@ export function UniversalTable({ columns, data, onAdd, onDelete, onEdit }) {
                 </td>
               ))}
               <td style={tdStyle}>
-                <button onClick={handleAdd} style={btnStyle("#666f76")}>+ Додати</button>
+                <button onClick={handleAdd} style={btnStyle("#e6b1d2")}>+ Додати</button>
               </td>
             </tr>
           )}
@@ -331,7 +331,7 @@ export function TabSwitcher({ views, activeView, onChange, config }) {
         <button key={key} onClick={() => onChange(key)} style={{
           padding: "6px 16px",
           borderRadius: 8,
-          border: "0.5px solid #ccc",
+          border: "0.5px solid #de97c0",
           background: activeView === key ? "#e6b1d2" : "transparent",
           cursor: "pointer",
           fontWeight: activeView === key ? 500 : 400,
@@ -354,7 +354,7 @@ export function FilterBar({ filters, values, onChange, onReset }) {
             <select
               value={values[filter.label] ?? filter.options[0].value}
               onChange={e => onChange(filter, e.target.value)}
-              style={{ fontSize: 13, border: "0.5px solid #ccc", borderRadius: 6, padding: "4px 8px", background: "transparent" }}
+              style={{ fontSize: 13, border: "0.5px solid #de97c0", borderRadius: 6, padding: "4px 8px", background: "transparent" }}
             >
               {filter.options.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -380,7 +380,7 @@ export function FilterBar({ filters, values, onChange, onReset }) {
               <select
                 value={values[filter.label] ?? filter.options[0].value}
                 onChange={e => onChange(filter, e.target.value)}
-                style={{ fontSize: 13, border: "0.5px solid #ccc", borderRadius: 6, padding: "4px 8px", background: "transparent" }}
+                style={{ fontSize: 13, border: "0.5px solid #de97c0", borderRadius: 6, padding: "4px 8px", background: "transparent" }}
               >
                 {filter.options.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -441,7 +441,7 @@ const fkOptionStyle = {
   fontSize: 13,
   display: "flex",
   alignItems: "center",
-  borderBottom: "0.5px solid #f0f0f0",
+  borderBottom: "0.5px solid #de97c0",
 };
 
 const inputStyle = {
@@ -450,7 +450,7 @@ const inputStyle = {
   outline: "none",
   fontSize: 14,
   background: "transparent",
-  borderBottom: "1px solid #aaa",
+  borderBottom: "1px solid #de97c0",
 };
 
 const menuItemStyle = {
