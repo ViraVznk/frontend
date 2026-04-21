@@ -129,7 +129,6 @@ function EmployeeProfileModal({ employee, onClose }) {
     .filter(Boolean).join("").toUpperCase();
 
   return (
-    /* Overlay */
     <div
       onClick={onClose}
       style={{
@@ -141,7 +140,6 @@ function EmployeeProfileModal({ employee, onClose }) {
         zIndex: 1000,
       }}
     >
-      {/* Card */}
       <div
         onClick={e => e.stopPropagation()}
         style={{

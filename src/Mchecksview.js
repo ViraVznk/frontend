@@ -16,33 +16,39 @@ function DateInput({ label, value, onChange }) {
     </div>
   );
 }
-
 function ProductQuantityPanel({ from, to }) {
   const [products, setProducts] = useState([]);
-  const [selectedUpc, setSelectedUpc] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch("/api/store-products")
-      .then(r => r.json())
-      .then(setProducts)
-      .catch(console.error);
-  }, []);
+  Promise.all([
+    fetch("/api/store-products").then(r => r.json()),
+    fetch("/api/products").then(r => r.json()),
+  ])
+    .then(([storeProducts, products]) => {
+      const nameMap = Object.fromEntries(products.map(p => [p.id_product, p.product_name]));
+      const enriched = storeProducts.map(sp => ({
+        ...sp,
+        product_name: nameMap[sp.id_product] ?? sp.upc,
+      }));
+      setProducts(enriched);
+    })
+    .catch(console.error);
+}, []);
 
   const search = () => {
-    if (!selectedUpc || !from || !to) return;
+    if (!selectedProduct || !from || !to) return;
     setLoading(true);
     const toEnd = new Date(to); toEnd.setHours(23, 59, 59);
     const f = from.toISOString();
     const t = toEnd.toISOString();
-    fetch(`/api/sales/quantity?upc=${selectedUpc}&from=${f}&to=${t}`)
+    fetch(`/api/sales/quantity?upc=${selectedProduct.upc}&from=${f}&to=${t}`)
       .then(r => r.ok ? r.json() : null)
       .then(qty => { setResult(qty); setLoading(false); })
       .catch(() => { setResult(null); setLoading(false); });
   };
-
-  const selectedProduct = products.find(p => p.upc === selectedUpc);
 
   return (
     <div style={{ marginBottom: 4 }}>
@@ -50,41 +56,51 @@ function ProductQuantityPanel({ from, to }) {
         КІЛЬКІСТЬ ПРОДАНОГО ТОВАРУ ЗА ПЕРІОД
       </div>
       <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+
         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <label style={{ fontSize: 11, color: "#888", fontWeight: 500 }}>ТОВАР</label>
           <select
-            value={selectedUpc}
-            onChange={e => { setSelectedUpc(e.target.value); setResult(null); }}
+            value={selectedProduct?.upc ?? ""}
+            onChange={e => {
+              const p = products.find(p => p.upc === e.target.value);
+              setSelectedProduct(p ?? null);
+              setResult(null);
+            }}
             style={{
               fontSize: 13, border: "none", borderBottom: "1.5px solid #ccc",
               outline: "none", background: "transparent", padding: "4px 2px",
-              minWidth: 240, cursor: "pointer", color: selectedUpc ? "#333" : "#aaa",
+              minWidth: 260, cursor: "pointer",
+              color: selectedProduct ? "#333" : "#aaa",
             }}
+            size={1}
           >
             <option value="">— оберіть товар —</option>
             {products.map(p => (
-              <option key={p.upc} value={p.upc}>{p.PRODUCT_NAME ?? p.upc}</option>
+              <option key={p.upc} value={p.upc}>
+                {p.product_name}
+              </option>
             ))}
           </select>
         </div>
 
-        <button onClick={search} disabled={!selectedUpc || loading} style={btnStyle("#666f76")}>
+        <button
+          onClick={search}
+          disabled={!selectedProduct || loading}
+          style={btnStyle("#666f76")}
+        >
           {loading ? "…" : "Порахувати"}
         </button>
 
         {result !== null && (
-          <div sstyle={{ fontSize: 13, color: "#555", marginBottom: 10 }}>
-            <strong>
-              {selectedProduct?.PRODUCT_NAME ?? selectedUpc}: 
-            </strong>
-            <span style={{ fontSize: 18, fontWeight: 600, color: "#222" }}>{result}  од.</span>
+          <div style={{ fontSize: 13, color: "#555", marginBottom: 10 }}>
+           <strong>{selectedProduct?.product_name}: </strong>
+            <span style={{ fontSize: 18, fontWeight: 600, color: "#222" }}>{result} од.</span>
           </div>
         )}
       </div>
     </div>
   );
 }
-
 const COLUMNS = [
   { key: "check_number", label: "Номер чеку" },
   { key: "id_employee",  label: "Касир" },
@@ -157,11 +173,11 @@ export default function ManagerChecksView() {
         style={{
           padding: "4px 10px",
           borderRadius: 6,
-          border: "0.5px solid #ccc",
+          border: "0.5px solid #e6b1d2",
           background: "transparent",
           cursor: "pointer",
           fontSize: 13,
-          color: "#666",
+          color: "#d5a0c1",
         }}
       >
         ↺ Відновити
@@ -177,9 +193,9 @@ export default function ManagerChecksView() {
     </div>
 
       {/* Table */}
-      <div id="checks-print-area" style={{ overflow: "auto", maxHeight: "60vh", border: "0.5px solid #ddd", borderRadius: 12 }}>
+      <div id="checks-print-area" style={{ overflow: "auto", maxHeight: "60vh", border: "0.5px solid #de97c0", borderRadius: 12 }}>
         <table style={{ width: "max-content", minWidth: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-          <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "#f5f5f5" }}>
+          <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "#fbddee" }}>
             <tr>
               {COLUMNS.map(col => <th key={col.key} style={thStyle}>{col.label}</th>)}
               <th style={{ ...thStyle, width: 50 }}></th>
